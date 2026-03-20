@@ -16,7 +16,7 @@ public class HelloWorld {
     
     @GetMapping("/")
     public String helloWorld(){
-        return "BENVINGUT, DAMM DEVELOPER! JA ESTEM EN FALLES!"
+        return "BENVINGUT, DAMM DEVELOPER! JA no estem en falles"
                 + "</br></br>"
                 + "<img src=\"/file.jpg\">";
     }

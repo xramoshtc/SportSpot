@@ -8,8 +8,11 @@ package ioc.dammdev.SportSpotServer.controller;
 import ioc.dammdev.SportSpotServer.dto.LoginRequest;
 import ioc.dammdev.SportSpotServer.dto.LoginResponse;
 import ioc.dammdev.SportSpotServer.model.User;
+import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import java.util.Optional;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *Controlador REST per gestionar l'autenticació d'usuaris.
@@ -21,6 +24,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api")
 public class AuthController {
+    
+    @Autowired
+    private UserRepository userRepository; // Connectem amb la BD
     
     /**
      * Gestiona la petició de login dels usuaris.
@@ -35,20 +41,24 @@ public class AuthController {
                peticio.getPassword() == null || peticio.getPassword().length() > 20)
             return new LoginResponse(false, "Login Error: Format de camps no vàlid",-1,"","","");
         
-        // 2. Simulació de validació
-        if ("admin".equals(peticio.getUser()) && "1234".equals(peticio.getPassword())){
-            User userAdmin = new User(1L,"admin", "1234", "admin@sportspot.com","ADMIN");
-            String token = UUID.randomUUID().toString().substring(0, 8);
-            
-            return new LoginResponse(true,"Sessió iniciada",200, token,userAdmin.getRole(),"test admin");
-        } else if ("joanet".equals(peticio.getUser()) && "5678".equals(peticio.getPassword())){
-            
-            User userClient = new User(42L, "joanet","5678","joanet@sportspot.com","CLIENT");
-            String token = UUID.randomUUID().toString().substring(0,8);
-            return new LoginResponse(true,"Sessió iniciada", 200,token, userClient.getRole(),"test client");
-        } else
-            // Cas de contrasenya incorrecta
-            return new LoginResponse(false,"Contrasenya o usuari incorrecte",-1,"","","");
+        // 2. CERCA real a la base de dades
+        
+        Optional<User> userOpt = userRepository.findByName(peticio.getUser());
+        
+        // 3. VALIDACIÓ DE CREDENCIALS
+        if (userOpt.isPresent()) {
+            User userBD = userOpt.get();
+            //Comprovem contrasenya
+            if (userBD.getPassword().equals(peticio.getPassword())){
+                //Generem token aleatori
+                String token = UUID.randomUUID().toString().substring(0,8);
+                //Retornem resposta
+                return new LoginResponse(true,"Sessió iniciada correctament",200,token,userBD.getRole(),"Usuari: "+ userBD.getName());
+            }
+        }
+        
+        // 4. SI NO EXISTEIX USUARI o PW INCORRECTE
+                    return new LoginResponse(false,"Contrasenya o usuari incorrecte",-1,"","","");
     }
     
     

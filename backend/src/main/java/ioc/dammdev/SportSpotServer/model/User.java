@@ -5,6 +5,12 @@
 package ioc.dammdev.SportSpotServer.model;
 
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +20,7 @@ import lombok.Setter;
 /**
  *Model De dades ficticies per fer les proves de login i logout
  * Representa l'entitat Usuari dins de la capa de dades d'SportSpot
- * @author Gess
+ * @author Gess Montalbán
  * @version 1.0
  */
 
@@ -22,11 +28,23 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "usuaris")
 public class User {
+   @Id //Clau primària
+   @GeneratedValue(strategy = GenerationType.IDENTITY) //Autoincrement
     private Long id;
+   
+   @Column(unique = true, nullable = false)
     private String name;
+   
+   @Column(nullable = false)
     private String password;
+   
+   @Column
     private String email;
+   
+   @Column
     private String role; 
     
 }
