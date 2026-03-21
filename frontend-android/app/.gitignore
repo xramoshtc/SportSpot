@@ -1,1 +1,27 @@
-/build
+# Android build
+/build/
+app/build/
+*/build/
+
+# Gradle
+.gradle/
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# APK / AAB
+*.apk
+*.aab
+
+# Generated files
+*.dex
+*.class
