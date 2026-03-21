@@ -8,7 +8,9 @@
  * Created: 20 mar 2026
  */
 
-INSERT INTO usuaris(name, password, email, role)
-    VALUES ('admin','1234','admin@sportspot.com','ADMIN');
-INSERT INTO usuaris(name, password, email, role)
-    VALUES ('joanet','5678','joanet@sportspot.com','CLIENT');
+MERGE INTO usuaris(name, password, email, role)
+KEY(name)
+VALUES ('admin','1234','admin@sportspot.com','ADMIN');
+MERGE INTO usuaris(name, password, email, role)
+KEY(name)
+VALUES ('joanet','5678','joanet@sportspot.com','CLIENT');
