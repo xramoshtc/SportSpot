@@ -9,8 +9,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- *  Petició de Logout (Json)
- * @author Gess
+ *  Data-Tranfer_object de petició de Logout (Json)
+ * @author Gess Montalbán
  */
 @Getter
 @Setter

@@ -18,8 +18,8 @@ import lombok.Setter;
 
 
 /**
- *Model De dades ficticies per fer les proves de login i logout
- * Representa l'entitat Usuari dins de la capa de dades d'SportSpot
+ *Model De dades per un usuari. 
+ * Es fa servir mapatge objecte-relacional amb  hibernate.
  * @author Gess Montalbán
  * @version 1.0
  */

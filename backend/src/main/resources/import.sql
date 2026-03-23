@@ -4,7 +4,7 @@
  */
 /**
     Injectem dades inicials a la base de dades
- * Author:  Gess
+ * Author:  Gess Montalbán
  * Created: 20 mar 2026
  */
 

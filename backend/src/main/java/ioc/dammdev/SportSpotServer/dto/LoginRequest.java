@@ -4,15 +4,17 @@
  */
 package ioc.dammdev.SportSpotServer.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- *
- * @author Gess
+ * Data-Transfer-Object per la petició de login
+ * @author Gess Montalbán
  */
 @Getter
 @Setter
+@AllArgsConstructor
 public class LoginRequest {
     
 /**

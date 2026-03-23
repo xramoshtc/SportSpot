@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  *Controlador REST per gestionar l'autenticació d'usuaris.
  * Gestiona l'autenticació d'usuaris connectant amb la base de dades H2.
- * @author Gess
+ * @author Gess Montalbán
  */
 
 @RestController
@@ -91,7 +91,7 @@ public LoginResponse logout(@RequestBody LogoutRequest peticio) {
     } else {
             //Esborrem registre del login a memòria
         sessionsActives.remove(peticio.getToken());
-        return new LoginResponse(false, "Sessió tancada correctament", 200, "", "", "");
+        return new LoginResponse(true, "Sessió tancada correctament", 200, "", "", "");
                }
 }
     

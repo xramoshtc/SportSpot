@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- *
- * @author Gess
+ * HelloWorld.java: pàgina web de benvinguda per comprovar la connexió del servlet
+ * @author Gess Montalbán
  */
 @RestController
 public class HelloWorld {

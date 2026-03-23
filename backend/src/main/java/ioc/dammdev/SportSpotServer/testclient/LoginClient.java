@@ -11,25 +11,25 @@ import ioc.dammdev.SportSpotServer.dto.LogoutRequest;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Un client senzill per provar la connexió amb el servidor.
+ * Un client senzill per provar la connexió amb el servidor amb un client Rest.
+ * @author Gess Montalbán
  */
 public class LoginClient {
 
     public static void main(String[] args) {
-        // 1. Configuració de l'URL del teu servidor local
+        // 1. Configuració de l'URL del teu servidor (remot o local)
         String urlIn = "http://10.2.3.145:8080/api/login";
         String urlOut = "http://10.2.3.145:8080/api/logout";
-     //  urlIn = "http://localhost:8080/api/login";
-       // urlOut = "http://localhost:8080/api/logout";
+       urlIn = "http://localhost:8080/api/login";
+       urlOut = "http://localhost:8080/api/logout";
         
         
         // 2. Creem l'eina que farà la petició HTTP
         RestTemplate restTemplate = new RestTemplate();
 
         // 3. Preparem les dades de prova (LoginRequest)
-        LoginRequest peticio = new LoginRequest();
-        peticio.setUser("admin");
-        peticio.setPassword("1234");
+        LoginRequest peticio = new LoginRequest("admin","1234");
+        
 
         System.out.println("Enviant petició de login al servidor...");
 

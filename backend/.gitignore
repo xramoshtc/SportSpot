@@ -29,5 +29,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### H2 Database ###
+backend/data/*.db
+backend/data/*.mv.db
+backend/data/*.trace.db
+
 ### VS Code ###
 .vscode/
