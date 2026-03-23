@@ -14,111 +14,130 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
+/**
+ * Classe de proves d'integració per a l'aplicació SportSpotServer.
+ * Utilitza un entorn de servidor sobre un port aleatori i base de dades H2.
+ * * @author Gess Montalbán
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) // <-- AIXÒ ÉS LA CLAU
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class SportSpotServerApplicationTests {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    private TestRestTemplate restTemplate;
+
     @Autowired
-    private UserRepository UserRepository;
-	@Test
-	void contextLoads() {
-	}
-        @Test
-        public void testLoginAdminCorrecte(){
-            LoginRequest request = new LoginRequest("admin","1234");
-                      
-            LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-            
-            assertThat(response.getResultCode() == 200);
-            assertThat(response.getRole().equals("ADMIN"));
-            
-        }
-        @Test
-        public void testLoginAdminError(){
-            LoginRequest request = new LoginRequest("admin","33334");
-            
-            LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-            
-            assertThat(response.getResultCode() == -1);
-            assertThat(response.getSessionToken().equals(""));
-            
-        }
-             @Test
-        public void testLoginClientCorrecte(){
-            LoginRequest request = new LoginRequest("joanet","5678");
-                       
-            LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-            
-            assertThat(response.getResultCode() == 200);
-            assertThat(response.getRole().equals("CLIENT"));
-            
-        }
-           @Test
-        public void testLoginClientError(){
-            LoginRequest request = new LoginRequest("joanet","33334");
-            
-            LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-            
-            assertThat(response.getResultCode() == -1);
-            assertThat(response.getSessionToken().equals(""));
-            
-        }
+    private UserRepository userRepository;
+
+    /**
+     * Verifica que el context de l'aplicació s'arrenca correctament.
+     * @author Gess Montalbán
+     */
+    @Test
+    void contextLoads() {
+    }
+
+    /**
+     * Valida l'accés d'un administrador amb credencials vàlides.
+     * @author Gess Montalbán
+     */
+    @Test
+    public void testLoginAdminCorrecte() {
+        LoginRequest request = new LoginRequest("admin", "1234");
+        LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
         
-        @Test
-        void testLogoutSuccess() {
-              
-            LoginRequest request = new LoginRequest("joanet","5678");
-                       
-            LoginResponse respostaLogin = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-             assertNotNull(respostaLogin.getSessionToken(), "El token no hauria de ser nul");
-             LogoutRequest peticioLogout = new LogoutRequest(respostaLogin.getSessionToken());
-                LoginResponse respostaLogout = restTemplate.postForObject("/api/logout", peticioLogout, LoginResponse.class);
-                
-           
-            assertTrue(respostaLogout.isSuccess(), "El logout hauria de tenir èxit amb un token vàlid");
-            assertEquals(respostaLogout.getResultCode(), 200);
-        }
-        @Test
-        void testLogoutError() {
-              
-            LoginRequest request = new LoginRequest("joanet","56789");
-                       
-            LoginResponse respostaLogin = restTemplate.postForObject("/api/login", request, LoginResponse.class);
-             assertNotNull(respostaLogin.getSessionToken(), "El token no hauria de ser nul");
-             LogoutRequest peticioLogout = new LogoutRequest(respostaLogin.getSessionToken());
-                LoginResponse respostaLogout = restTemplate.postForObject("/api/logout", peticioLogout, LoginResponse.class);
-                
-           
-            assertFalse(respostaLogout.isSuccess(), "El logout hauria de ser erroni sense un token vàlid");
-            assertEquals(respostaLogout.getResultCode(), -1);
-        }
+        assertThat(response.getResultCode()).isEqualTo(200);
+        assertThat(response.getRole()).isEqualTo("ADMIN");
+        assertNotNull(response.getSessionToken());
+    }
 
+    /**
+     * Valida la denegació d'accés a un administrador amb contrasenya errònia.
+     * @author Gess Montalbán
+     */
+    @Test
+    public void testLoginAdminError() {
+        LoginRequest request = new LoginRequest("admin", "33334");
+        LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
         
-        // --- PROVA D'INTEGRACIÓ (Base de Dades H2) ---
-        @Test
-        void testUserRepositoryPersistence() {
-            // Creem un usuari per la prova
-            User testUser = new User();
-            testUser.setName("test_user"); // Revisa si al teu model és 'name' o 'username'
-            testUser.setPassword("1234");
-            testUser.setRole("CLIENT");
+        assertThat(response.getResultCode()).isEqualTo(-1);
+    }
 
-            // El guardem i el busquem
-            UserRepository.save(testUser);
-            Optional<User> found = UserRepository.findByName("test_user");
+    /**
+     * Valida l'accés d'un usuari tipus Client amb credencials vàlides.
+     * @author Gess Montalbán
+     */
+    @Test
+    public void testLoginClientCorrecte() {
+        LoginRequest request = new LoginRequest("joanet", "5678");
+        LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
+        
+        assertThat(response.getResultCode()).isEqualTo(200);
+        assertThat(response.getRole()).isEqualTo("CLIENT");
+    }
 
-            // Verifiquem que la BD H2 ha fet la seva feina
-            assertTrue(found.isPresent(), "L'usuari s'hauria d'haver guardat i trobat");
-            assertEquals("CLIENT", found.get().getRole());
-        }
+    /**
+     * Valida la denegació d'accés per a un usuari Client amb dades incorrectes.
+     * @author Gess Montalbán
+     */
+    @Test
+    public void testLoginClientError() {
+        LoginRequest request = new LoginRequest("joanet", "33334");
+        LoginResponse response = restTemplate.postForObject("/api/login", request, LoginResponse.class);
+        
+        assertThat(response.getResultCode()).isEqualTo(-1);
+    }
+
+    /**
+     * Valida el flux d'obtenció de token i tancament de sessió amb èxit.
+     * @author Gess Montalbán
+     */
+    @Test
+    void testLogoutSuccess() {
+        LoginRequest loginReq = new LoginRequest("joanet", "5678");
+        LoginResponse respLogin = restTemplate.postForObject("/api/login", loginReq, LoginResponse.class);
+        
+        LogoutRequest logoutReq = new LogoutRequest(respLogin.getSessionToken());
+        LoginResponse respLogout = restTemplate.postForObject("/api/logout", logoutReq, LoginResponse.class);
+        
+        assertTrue(respLogout.isSuccess());
+        assertEquals(200, respLogout.getResultCode());
+    }
+
+    /**
+     * Valida que el sistema retorna error en intentar un logout sense token vàlid.
+     * @author Gess Montalbán
+     */
+    @Test
+    void testLogoutError() {
+        LoginRequest loginReq = new LoginRequest("joanet", "56789");
+        LoginResponse respLogin = restTemplate.postForObject("/api/login", loginReq, LoginResponse.class);
+        
+        LogoutRequest logoutReq = new LogoutRequest(respLogin.getSessionToken());
+        LoginResponse respLogout = restTemplate.postForObject("/api/logout", logoutReq, LoginResponse.class);
+        
+        assertFalse(respLogout.isSuccess());
+        assertEquals(-1, respLogout.getResultCode());
+    }
+
+    /**
+     * Valida la persistència de dades a la base de dades H2 mitjançant el repositori.
+     * @author Gess Montalbán
+     */
+    @Test
+    void testUserRepositoryPersistence() {
+        User testUser = new User();
+        testUser.setName("test_user");
+        testUser.setPassword("1234");
+        testUser.setRole("CLIENT");
+
+        userRepository.save(testUser);
+        Optional<User> found = userRepository.findByName("test_user");
+
+        assertTrue(found.isPresent());
+        assertEquals("CLIENT", found.get().getRole());
+    }
 }
-      
-
-
-

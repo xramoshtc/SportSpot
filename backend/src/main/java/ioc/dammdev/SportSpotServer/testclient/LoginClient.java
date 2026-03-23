@@ -20,8 +20,8 @@ public class LoginClient {
         // 1. Configuració de l'URL del teu servidor (remot o local)
         String urlIn = "http://10.2.3.145:8080/api/login";
         String urlOut = "http://10.2.3.145:8080/api/logout";
-       urlIn = "http://localhost:8080/api/login";
-       urlOut = "http://localhost:8080/api/logout";
+       //urlIn = "http://localhost:8080/api/login";
+       //urlOut = "http://localhost:8080/api/logout";
         
         
         // 2. Creem l'eina que farà la petició HTTP
