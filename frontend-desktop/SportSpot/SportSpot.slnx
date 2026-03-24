@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="SportSpot.Tests/SportSpot.Tests.csproj" Id="c4c80e5a-b19b-46a9-95c0-8069553dbebf" />
+  <Project Path="SportSpot/SportSpot.csproj" />
+</Solution>
