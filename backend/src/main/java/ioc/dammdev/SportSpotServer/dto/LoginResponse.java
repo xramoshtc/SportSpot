@@ -35,7 +35,7 @@ public class LoginResponse {
  * @param sessionToken Token de sessió generat.
  * @param role Rol de l'usuari.
  */
-    public LoginResponse(boolean success, String message, int resultCode, String sessionToken, String role, String permissions) {
+    public LoginResponse(boolean success, String message, int resultCode, String sessionToken, String role) {
         this.success = success;
         this.message = message;
         this.resultCode = resultCode;

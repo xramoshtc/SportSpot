@@ -9,10 +9,9 @@ import ioc.dammdev.SportSpotServer.dto.LoginRequest;
 import ioc.dammdev.SportSpotServer.dto.LoginResponse;
 import ioc.dammdev.SportSpotServer.dto.LogoutRequest;
 import ioc.dammdev.SportSpotServer.model.User;
-import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import ioc.dammdev.SportSpotServer.service.UserService;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.*;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -23,15 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api")
-public class AuthController {
+public class LoginController {
     
     @Autowired
-    private UserRepository userRepository; // Connectem amb la BD
+    private UserService userService; // Connectem amb la capa de servei
     
-    // Guardarem en memòria l'usuari i token de sessió
-    // Clau: Token (String) | Valor: Nom d'usuari (String)
-    private static final java.util.Map<String, String> sessionsActives = new java.util.HashMap<>();
-    
+  
     /**
      * Gestiona la petició de login dels usuaris.
      * @param peticio Objecte {@link LoginRequest} amb les credencials.
@@ -41,32 +37,25 @@ public class AuthController {
     public LoginResponse login(@RequestBody LoginRequest peticio){
         
         // 1. Validació de longitud segons requeriments
-        if ( peticio.getUser() == null || peticio.getUser().length() > 10 ||
+        if ( peticio.getUser() == null || peticio.getUser().trim().isEmpty() || peticio.getUser().length() > 10 ||
                peticio.getPassword() == null || peticio.getPassword().length() > 20)
-            return new LoginResponse(false, "Login Error: Format de camps no vàlid",-1,"","","");
+            return new LoginResponse(false, "Login Error: Format de camps no vàlid",-1,"","");
         
-        // 2. CERCA real a la base de dades i si ja està loguejat
+        // 2. Validem credencials
+        Optional<User> userLogin = userService.login(peticio.getUser());
+        String token = userService.createSession(userLogin, peticio.getPassword());
+        if (token != null)           
+            return  new LoginResponse(true,"Login realitzat correctament",200,token,userLogin.get().getRole());
+        else
+        // 3. Si no existeix o pw incorrecte o ja ha iniciat sessió
+            return new LoginResponse(false,"Nom usuari/contrasenya no vàlids o sessió ja iniciada",-1,"","");
         
-        Optional<User> userOpt = userRepository.findByName(peticio.getUser());
         
-        
-        // 3. VALIDACIÓ DE CREDENCIALS
-        if (userOpt.isPresent()) {
-            User userBD = userOpt.get();
-            //Comprovem contrasenya
-            if (userBD.getPassword().equals(peticio.getPassword())){
-                //Generem token aleatori
-                String token = UUID.randomUUID().toString().substring(0,8);
-                //Salvem dades de sessió (en memòria)
-                sessionsActives.put(token, userBD.getName());
-                //Retornem resposta
-                return new LoginResponse(true,"Sessió iniciada correctament",200,token,userBD.getRole(),"Usuari: "+ userBD.getName());
             }
-        }
         
-        // 4. SI NO EXISTEIX USUARI o PW INCORRECTE
-                    return new LoginResponse(false,"Contrasenya o usuari incorrecte",-1,"","","");
-    }
+        
+        
+                    
     /**
  * Gestiona el tancament de sessió de l'usuari.
   * @param peticio: LogoutRequest amb el token de sessio
@@ -83,18 +72,16 @@ public LoginResponse logout(@RequestBody LogoutRequest peticio) {
     // code = 200 o -1
     // la resta de camps (token, role, name) es tornen buits ""
     
-    if ( peticio.getToken() == null || !sessionsActives.containsKey(peticio.getToken())){
-    
-        return new LoginResponse(false,"Token no vàlid o sessió ja tancada", -1, "","","");
-    
-       
-    } else {
-            //Esborrem registre del login a memòria
-        sessionsActives.remove(peticio.getToken());
-        return new LoginResponse(true, "Sessió tancada correctament", 200, "", "", "");
-               }
+    boolean logoutResponse =  userService.logout(peticio.getToken());
+     
+     if (!logoutResponse)
+         return new LoginResponse(false,"Sessió invàlida, no es pot tancar la sessió",-1,"","");
+     else
+         return new LoginResponse(true,"Sessió tancada correctament",200,"","");
+     
+            }
 }
     
     
     
-}
+

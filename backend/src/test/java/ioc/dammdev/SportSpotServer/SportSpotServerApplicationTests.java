@@ -5,12 +5,14 @@ import ioc.dammdev.SportSpotServer.dto.LoginResponse;
 import ioc.dammdev.SportSpotServer.dto.LogoutRequest;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import ioc.dammdev.SportSpotServer.service.UserService;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -31,6 +33,9 @@ class SportSpotServerApplicationTests {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private UserService userService;
 
     /**
      * Verifica que el context de l'aplicació s'arrenca correctament.
@@ -38,6 +43,11 @@ class SportSpotServerApplicationTests {
      */
     @Test
     void contextLoads() {
+    }
+    @Test
+    @BeforeEach
+    public void cleanup(){
+        userService.clearSessions();
     }
 
     /**
@@ -97,13 +107,15 @@ class SportSpotServerApplicationTests {
      */
     @Test
     void testLogoutSuccess() {
-        LoginRequest loginReq = new LoginRequest("joanet", "5678");
+        LoginRequest loginReq = new LoginRequest("admin", "1234");
         LoginResponse respLogin = restTemplate.postForObject("/api/login", loginReq, LoginResponse.class);
-        
+       
         LogoutRequest logoutReq = new LogoutRequest(respLogin.getSessionToken());
         LoginResponse respLogout = restTemplate.postForObject("/api/logout", logoutReq, LoginResponse.class);
-        
+        System.out.println(respLogout.isSuccess());
+         System.out.println("LOGIN SUCCESS: " + respLogin.isSuccess());
         assertTrue(respLogout.isSuccess());
+        System.out.println(respLogin.getSessionToken());
         assertEquals(200, respLogout.getResultCode());
     }
 
