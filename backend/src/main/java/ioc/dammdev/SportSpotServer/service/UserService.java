@@ -2,6 +2,7 @@ package ioc.dammdev.SportSpotServer.service;
 
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -104,12 +105,58 @@ public class UserService {
     public void clearSessions(){
         sessionsActives.clear();
     }
+    
+    public boolean isAdmin(String token){
+        //Busquem usuari associat a la sessió
+        String user = sessionsActives.get(token);
+        User loggedUser = userRepository.findByName(user).get();
+        if (loggedUser.getRole().equals("ADMIN"))
+            return true;
+        return false;
+        
+    }
     /**
      * Registra un usuari nou. 
      * Podem afegir validacions de negoci (ex: si el nom ja està agafat).
+     * @param newUser: usuari a resgistrar
+     * @return User: nou usuari creat
+     * @author Gess Montalbán
      */
-    public User registerUser(User user) {
-        // Lògica de negoci extra aquí
-        return userRepository.save(user);
+    public User registerUser(User newUser) {
+        // Lògica de negoci: comprovem si el nom ja està agafat
+        Optional<User> existingUser = userRepository.findByName(newUser.getName());
+        
+        if (existingUser.isPresent()) 
+            return null;
+        String role = newUser.getRole();
+         if (role == null || role.trim().isEmpty()){
+             newUser.setRole("USER"); //Usuari per defecte
+         } else {
+             role = role.toUpperCase();
+             if (!role.endsWith("ADMIN") && !role.equals("USER"))
+                 return null;
+             newUser.setRole(role);
+         }         
+        return userRepository.save(newUser);
+    }
+    
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    
+    public Optional<User> getUserByName(String name){
+        return userRepository.findByName(name);
+        
+    }
+    public Optional<User> getUserById(Long id){
+        return userRepository.findById(id);
+    }
+    
+    public boolean deleteUser(Long id){
+        if (userRepository.existsById(id)){
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

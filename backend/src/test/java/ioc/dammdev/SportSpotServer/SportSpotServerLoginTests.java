@@ -26,7 +26,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-class SportSpotServerApplicationTests {
+class SportSpotServerLoginTests {
 
     @Autowired
     private TestRestTemplate restTemplate;
