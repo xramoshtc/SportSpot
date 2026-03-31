@@ -20,8 +20,8 @@ public class LoginClient {
         // 1. Configuració de l'URL del teu servidor (remot o local)
         String urlIn = "http://10.2.3.145:8080/api/login";
         String urlOut = "http://10.2.3.145:8080/api/logout";
-      // urlIn = "http://localhost:8080/api/login";
-       //urlOut = "http://localhost:8080/api/logout";
+       urlIn = "http://localhost:8080/api/login";
+      urlOut = "http://localhost:8080/api/logout";
         
         
         // 2. Creem l'eina que farà la petició HTTP
@@ -48,14 +48,14 @@ public class LoginClient {
                     System.out.println("Rol usuari: " + resposta.getRole());
                                        
                 }
-          //       6 . Fem Logout a continuació
-                System.out.println("TOKEN: " + resposta.getSessionToken());
-                LogoutRequest peticioLogout = new LogoutRequest(resposta.getSessionToken());
-                LoginResponse respostaLogout = restTemplate.postForObject(urlOut, peticioLogout, LoginResponse.class);
-                System.out.println("--- RESPOSTA DEL SERVIDOR (LOGOUT)---");
-                System.out.println("SUCCESS: "+ respostaLogout.isSuccess());
-                System.out.println("Codi: " + respostaLogout.getResultCode());
-                System.out.println("Missatge: " + respostaLogout.getMessage());
+//                // 6 . Fem Logout a continuació
+//                System.out.println("TOKEN: " + resposta.getSessionToken());
+//                LogoutRequest peticioLogout = new LogoutRequest(resposta.getSessionToken());
+//                LoginResponse respostaLogout = restTemplate.postForObject(urlOut, peticioLogout, LoginResponse.class);
+//                System.out.println("--- RESPOSTA DEL SERVIDOR (LOGOUT)---");
+//                System.out.println("SUCCESS: "+ respostaLogout.isSuccess());
+//                System.out.println("Codi: " + respostaLogout.getResultCode());
+//                System.out.println("Missatge: " + respostaLogout.getMessage());
             }
             
         } catch (Exception e) {

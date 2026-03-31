@@ -107,11 +107,18 @@ public class UserService {
     }
     
     public boolean isAdmin(String token){
+        if (token == null) return false;
+        
         //Busquem usuari associat a la sessió
         String user = sessionsActives.get(token);
-        User loggedUser = userRepository.findByName(user).get();
-        if (loggedUser.getRole().equals("ADMIN"))
-            return true;
+        //Si el token no existeix o ha caducat
+        if (user == null) return false;
+        // Busquem usuari a la base de dades
+        Optional<User> loggedUser = userRepository.findByName(user);
+        if ( loggedUser.isPresent()){
+            if (loggedUser.get().getRole().equals("ADMIN"))
+                return true;
+        }        
         return false;
         
     }

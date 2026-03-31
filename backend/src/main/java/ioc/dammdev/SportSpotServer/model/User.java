@@ -46,5 +46,14 @@ public class User {
    
    @Column
     private String role; 
+   
+   // Constructor per als clients
+public User(String name, String password, String email, String role) {
+    this.name = name;
+    this.password = password;
+    this.email = email;
+    this.role = role;
+    // L'id es queda a null per defecte fins que JPA el guardi
+}
     
 }

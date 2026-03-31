@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,9 +35,10 @@ public class UserController {
      * @return Llista d'objectes {@link User}.
      * @param token token rebut a la capçalera "Session-Token"
      */
+    @GetMapping
     public ResponseEntity<List<User>> getAllUsers(
         @RequestHeader(value = "Session-Token", required = false) String token){
-        
+       
         // Verifiquem usuari admin loguejat
         if (!userService.isValidToken(token) || !userService.isValidSession(token) || !userService.isAdmin(token)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -63,6 +65,7 @@ public class UserController {
         if (user.getName() == null || user.getName().trim().isEmpty() || user.getName().length() > 10 ||
                 user.getPassword() == null || user.getPassword().trim().isEmpty() || user.getPassword() == null ||
                  user.getPassword().trim().isEmpty() || user.getPassword().length() > 20){
+            
             return ResponseEntity.badRequest().build();
         }
         
