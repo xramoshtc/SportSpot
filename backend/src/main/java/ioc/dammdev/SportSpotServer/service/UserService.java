@@ -166,4 +166,10 @@ public class UserService {
         }
         return false;
     }
+    public boolean deleteUserByName(String name){
+        Optional<User> userBD = userRepository.findByName(name);
+        if (userBD.isPresent())
+            return true;
+        return false;
+    }
 }

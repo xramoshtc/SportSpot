@@ -22,7 +22,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-public class SportSpotServerUserTests {
+public class SportSpotServerUserTests1 {
 
     @Autowired
     private TestRestTemplate restTemplate;
