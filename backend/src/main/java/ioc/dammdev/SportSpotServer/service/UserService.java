@@ -2,6 +2,7 @@ package ioc.dammdev.SportSpotServer.service;
 
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -166,10 +167,46 @@ public class UserService {
         }
         return false;
     }
+    @Transactional
     public boolean deleteUserByName(String name){
         Optional<User> userBD = userRepository.findByName(name);
-        if (userBD.isPresent())
+        if (userBD.isPresent()){
+            Long userId = userBD.get().getId();
+            userRepository.deleteById(userId);
             return true;
+        }
+            
         return false;
+    }
+    
+    /**
+     * Actualitza les dades d'un usuari existent a la base de dades.
+     * <p>
+     * El mètode cerca l'usuari pel seu identificador únic (nom). Si el troba, 
+     * actualitza els camps permesos (email, role, password) i persisteix els canvis.
+     * </p>
+     * * @param name El nom de l'usuari que es vol modificar (identificador).
+     * @param userUpdates Objecte que conté les noves dades a aplicar.
+     * @return L'objecte {@link User} actualitzat i guardat.
+     * @throws RuntimeException Si no es troba cap usuari amb el nom proporcionat.
+     * @see UserRepository#findByName(String)
+     */
+    
+    @Transactional
+    public User updateUser(String name, User userUpdates){
+        // 1. Busquem usuari existent
+        User existingUser = userRepository.findByName(name)
+                .orElseThrow(() -> new RuntimeException("usuari no trobat"));
+        if(userUpdates.getName() != null)
+            existingUser.setName(userUpdates.getName());
+        if(userUpdates.getPassword() != null)
+            existingUser.setPassword(userUpdates.getPassword());
+        if(userUpdates.getEmail() != null)
+            existingUser.setEmail(userUpdates.getEmail());
+        if(userUpdates.getRole() != null)
+            existingUser.setRole(userUpdates.getRole());
+        
+        return userRepository.save(existingUser);
+        
     }
 }

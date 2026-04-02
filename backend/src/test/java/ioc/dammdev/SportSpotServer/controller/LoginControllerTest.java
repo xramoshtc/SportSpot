@@ -1,4 +1,4 @@
-package ioc.dammdev.SportSpotServer;
+package ioc.dammdev.SportSpotServer.controller;
 
 import ioc.dammdev.SportSpotServer.dto.LoginRequest;
 import ioc.dammdev.SportSpotServer.dto.LoginResponse;
@@ -26,7 +26,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-class SportSpotServerLoginTests {
+class LoginControllerTest {
 
     @Autowired
     private TestRestTemplate restTemplate;

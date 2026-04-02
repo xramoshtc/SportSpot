@@ -1,7 +1,6 @@
-package ioc.dammdev.SportSpotServer;
+package ioc.dammdev.SportSpotServer.repository;
 
 import ioc.dammdev.SportSpotServer.model.User;
-import ioc.dammdev.SportSpotServer.repository.UserRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest // Configura H2 en memòria, Hibernate i Spring Data JPA
 @ActiveProfiles("test")
-public class SportSpotUserRepoTests {
+public class UserRepoTests {
 
 
     @Autowired
@@ -30,10 +29,10 @@ public class SportSpotUserRepoTests {
     public void findByUserNameTest() {
         // GIVEN: Preparem les dades 
         System.out.println("USUARIS ACTUALS A LA BD: " + userRepository.count());
-        User admin = new User(null,"admin", "1234", "admin@test.com", "ADMIN");
+        User admin = new User("admin", "1234", "admin@test.com", "ADMIN");
         userRepository.save(admin);
          System.out.println("USUARIS ACTUALS A LA BD: " + userRepository.count());
-          User nou = new User(null,"joanet", "5678", "j@test.com", "USER");
+          User nou = new User("joanet", "5678", "j@test.com", "USER");
        
         // WHEN
         User guardat = userRepository.save(nou);
@@ -50,7 +49,7 @@ public class SportSpotUserRepoTests {
     @Test
     public void saveUsergetIdNotNull() {
         // GIVEN
-        User nou = new User(null,"joanet", "5678", "j@test.com", "USER");
+        User nou = new User("joanet", "5678", "j@test.com", "USER");
         System.out.println("USUARIS ACTUALS A LA BD: " + userRepository.count());
          //WHEN
         User guardat = userRepository.save(nou);

@@ -10,8 +10,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,6 +82,64 @@ public class UserController {
         // 3. Retornem l¡usuari creat amb el seu ID de base de dades
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
         
+    }
+    
+    /**
+     * Petició per eliminar un usuari de la base de dades a partir del seu nom.
+     * Aquesta operació només és permesa per a usuaris amb rol ADMIN.
+     * * @param name Nom de l'usuari que es vol eliminar (rebut a la URL).
+     * @param token Token d'autenticació rebut a la capçalera "Session-Token".
+     * @return ResponseEntity buit amb codi 204 (No Content) si s'ha eliminat, 
+     * 404 (Not Found) si l'usuari no existeix, 
+     * o 403 (Forbidden) si el token no és d'administrador.
+     */
+    @DeleteMapping("/{name}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable String name,
+            @RequestHeader(value = "Session-Token", required = false) String token) {
+
+        // 1. Control d'accés: Verifiquem si el token és vàlid i pertany a un ADMIN
+        if (!userService.isValidToken(token) || !userService.isValidSession(token) || !userService.isAdmin(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // 2. Intentem l'esborrat a través de la lògica del servei (findByName + deleteById)
+        boolean isDeleted = userService.deleteUserByName(name);
+
+        if (isDeleted) {
+            // L'estàndard REST dicta que si l'esborrat és exitós i no retornem dades, usem 204
+            return ResponseEntity.noContent().build();
+        } else {
+            // Si el servei no ha trobat l'usuari, retornem 404
+            return ResponseEntity.notFound().build();
+        }
+    }
+    /**
+     * Petició per modificar un usuari mitjançant una petició PUT.
+     * Rep el nom de l'usuari per la URL i l'objecte amb els canvis en el cos (JSON).
+     * Requereix un token de sessió vàlid amb privilegis d'administrador.
+     * * @param name Nom de l'usuari passat com a PathVariable.
+     * @param userUpdates Dades de l'usuari rebudes al RequestBody.
+     * @param token Token de sessió rebut a la capçalera "Session-Token".
+     * @return {@link ResponseEntity} amb:
+     * 200 (OK): Si l'actualització ha estat satisfactòria.
+     * 403 (FORBIDDEN): Si el token no és d'administrador.
+     * 404 (NOT FOUND): Si l'usuari a modificar no existeix.
+     */
+    @PutMapping("/{name}")
+    public ResponseEntity<User> update(
+            @PathVariable String name,
+            @RequestBody User userUpdates,
+            @RequestHeader("Session-Token") String token) {
+        
+        if (!userService.isAdmin(token)) 
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403 si no és admin
+        try {
+            User updated = userService.updateUser(name, userUpdates);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e){
+            return ResponseEntity.notFound().build(); // 404 si nom no existeix
+        }
     }
     
 }
