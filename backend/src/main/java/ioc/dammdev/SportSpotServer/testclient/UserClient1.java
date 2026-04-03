@@ -16,16 +16,18 @@ public class UserClient1 {
         String urlLogout = "http://localhost:8080/api/logout";
         String urlUsers = "http://localhost:8080/api/users";
       urlLogin = "http://10.2.3.145:8080/api/login";
-        urlLogout = "http://10.2.3.145:8080/api/logout";
-        urlUsers = "http://10.2.3.145:8080/api/users";
+      urlLogout = "http://10.2.3.145:8080/api/logout";
+     urlUsers = "http://10.2.3.145:8080/api/users";
 
         RestTemplate restTemplate = new RestTemplate();
 
         // --- 1. Login ---
         LoginRequest loginReq = new LoginRequest("admin", "1234");
+       
 
         try {
             LoginResponse loginResp = restTemplate.postForObject(urlLogin, loginReq, LoginResponse.class);
+            
 
             if (loginResp != null && loginResp.getResultCode() == 200) {
                 String token = loginResp.getSessionToken();
@@ -37,6 +39,25 @@ public class UserClient1 {
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.set("Session-Token", token);
 
+                
+                // -- 2. Mostrar informació usuari
+                HttpEntity<User> getMyUser = new HttpEntity<>(headers);
+                
+                ResponseEntity<User> getMeResponse = restTemplate.exchange(
+                        urlUsers + "/me",
+                        HttpMethod.GET,
+                        getMyUser,
+                        User.class
+                        );
+                
+                System.out.println("Recuperant les meves dades: ");
+                if (getMeResponse.getStatusCode() == HttpStatus.OK){
+                    User myself = getMeResponse.getBody();
+                    
+                    System.out.println("Dades obtingudes correctament; NOM: "+ myself.getName());
+                    System.out.println("ROLE: " + myself.getRole());
+                } else 
+                    System.out.println("Sessió no vàlida o usuari no creat");
                 // --- 2. Crear un nou usuari ---
                 User nouUsuari = new User("usuaritest", "pass1234","usuaritest@test.com","USER");
                 HttpEntity<User> postEntity = new HttpEntity<>(nouUsuari, headers);
@@ -87,7 +108,7 @@ public class UserClient1 {
                 
                 // --- 4. MODIFIQUEM USUARI ----
                 
-                User dadesModificades = new User("nouusuari","novaPass1223", "nou-email",null);
+                User dadesModificades = new User("marta","auyeeea", "nou-email",null);
                 HttpEntity<User> putRequest = new HttpEntity<>(dadesModificades, headers);
                 ResponseEntity<User> modResp = restTemplate.exchange(
                     urlUsers + "/marta",
@@ -97,9 +118,46 @@ public class UserClient1 {
                 );
                 if (modResp.getStatusCode() == HttpStatus.OK)
                     System.out.println("Usuari modificat: " + modResp.getBody().getName());
-                // --- 4. Logout ---
+       
+                
+             
+                
+                // --- 5. Registre nou usuari (no admin) ---
+               
+                headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                User userReg =  new User("pepeleches","6658","pepe@leches.com");
+                HttpEntity<User> registerUser = new HttpEntity<>(userReg,headers);
+                ResponseEntity<User> regResp = restTemplate.exchange(
+                    urlUsers + "/newuser",
+                    HttpMethod.POST,
+                    registerUser,
+                    User.class
+                );
+                     System.out.println("|n --- REGISTER USER ---");
+                     System.out.println("--- Client REGISTRAT: " + regResp.getBody().getName());
+                     
+                       LoginRequest loginReqCli = new LoginRequest("pepeleches", "6658");
+                       LoginResponse loginRespCli = restTemplate.postForObject(urlLogin, loginReqCli, LoginResponse.class);
+                String token_cli = loginRespCli.getSessionToken();
+                headers.set("Session-token", token_cli);
+                HttpEntity<Void> delClient = new HttpEntity<>(headers);
+                ResponseEntity<Void> deletionResponse2 = restTemplate.exchange(
+                        urlUsers + "/pepeleches",
+                        HttpMethod.DELETE,
+                        delUser,
+                        Void.class
+                        );
+               
+                
+           
+             
+                
+                         // --- 4. Logout ---
                 LogoutRequest logoutReq = new LogoutRequest(token);
+                  LogoutRequest logoutReqCli = new LogoutRequest(token_cli);
                 LoginResponse logoutResp = restTemplate.postForObject(urlLogout, logoutReq, LoginResponse.class);
+                LoginResponse logoutRespCli = restTemplate.postForObject(urlLogout, logoutReqCli, LoginResponse.class);
                 System.out.println("\n--- LOGOUT ---");
                 System.out.println("Success: " + logoutResp.isSuccess());
                 System.out.println("Codi: " + logoutResp.getResultCode());

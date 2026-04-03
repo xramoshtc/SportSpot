@@ -85,7 +85,17 @@ public class UserService {
             return true;
                     
     }
-    
+        /**
+     * Comprova si un token rebut es correspon a l'usués vàlid, no és nul/buit i està actiu al mapa.
+     * @param token El token rebut des del frontend.
+     * @return true si la sessió és vàlida, false en cas contrari.
+     */
+    public boolean isTokenOfName(String token, String name){
+        
+            if (name.equals(sessionsActives.get(token)))
+                    return true;
+            return false;
+    }    
     public boolean isValidSession(String token){
         return sessionsActives.containsKey(token);
                               
@@ -141,7 +151,7 @@ public class UserService {
              newUser.setRole("USER"); //Usuari per defecte
          } else {
              role = role.toUpperCase();
-             if (!role.endsWith("ADMIN") && !role.equals("USER"))
+             if (!role.endsWith("ADMIN") && !role.equals("USER") && !role.equals("CLIENT"))
                  return null;
              newUser.setRole(role);
          }         
@@ -208,5 +218,10 @@ public class UserService {
         
         return userRepository.save(existingUser);
         
+    }
+
+    public User getUserByToken(String token) {
+        String name = sessionsActives.get(token);
+        return userRepository.findByName(name).get();
     }
 }

@@ -50,7 +50,48 @@ public class UserControllerTest {
     void setUp() {
         adminUser = new User(1L, "admin", "1234", "admin@test.com", "ADMIN",true);
     }
+/**
+     * Verifica que un usuari autenticat pot recuperar el seu propi perfil.
+     * S'espera un codi 200 OK i que la contrasenya estigui ocultada.
+     * @author Gess Montalbán
+     */
+    @Test
+    void whenGetMyProfileWithValidToken_thenReturnsUserJson() throws Exception {
+        // GIVEN
+        String token = "valid-session-token";
+        User sessionUser = new User(1L, "Gess", "password123", "gess@test.com", "USER", true);
 
+        // Simulem que la sessió és vàlida i el servei ens retorna l'usuari associat al token
+        when(userService.isValidSession(token)).thenReturn(true);
+        when(userService.getUserByToken(token)).thenReturn(sessionUser);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/api/users/me")
+                .header("Session-Token", token)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Gess"))
+                .andExpect(jsonPath("$.email").value("gess@test.com"))
+                // El controlador hauria de retornar la password ofuscada/oculta
+                .andExpect(jsonPath("$.password").value("********"));
+    }
+
+    /**
+     * Verifica que si s'intenta accedir al perfil sense un token vàlid,
+     * el sistema retorna un 401 Unauthorized.
+     * @author Gess Montalbán
+     */
+    @Test
+    void whenGetMyProfileWithInvalidToken_thenReturns401Unauthorized() throws Exception {
+        // GIVEN
+        String invalidToken = "expired-or-fake-token";
+        when(userService.isValidSession(invalidToken)).thenReturn(false);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/api/users/me")
+                .header("Session-Token", invalidToken))
+                .andExpect(status().isUnauthorized());
+    }
     /**
      * Verifica que un administrador amb un token vàlid pot eliminar un usuari.
      * S'espera un codi de resposta 204 (No Content).
@@ -69,6 +110,25 @@ public class UserControllerTest {
                 .header("Session-Token", VALID_TOKEN))
                 .andExpect(status().isNoContent());
     }
+    /**
+     * Verifica que un client amb un token vàlid pot eliminar el seu usuari.
+     * S'espera un codi de resposta 204 (No Content).
+     */
+    @Test
+    void whenDeleteClientWithValidToken_thenReturns204() throws Exception {
+        // Simulem les validacions de seguretat del servei
+        when(userService.isValidToken(VALID_TOKEN)).thenReturn(true);
+        when(userService.isValidSession(VALID_TOKEN)).thenReturn(true);
+        when(userService.isAdmin(VALID_TOKEN)).thenReturn(false);
+        when(userService.isTokenOfName(VALID_TOKEN, "joanet")).thenReturn(true);
+        
+        // Simulem que l'usuari a esborrar existeix
+        when(userService.deleteUserByName("joanet")).thenReturn(true);
+
+        mockMvc.perform(delete("/api/users/joanet")
+                .header("Session-Token", VALID_TOKEN))
+                .andExpect(status().isNoContent());
+    } 
 
     /**
      * Verifica que si s'intenta eliminar un usuari sense el token a la capçalera,

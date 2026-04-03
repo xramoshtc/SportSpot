@@ -51,12 +51,21 @@ public class User {
     private boolean active = true;
   
    
-   // Constructor per als clients
+   // Constructor per als usuaris admin
 public User(String name, String password, String email, String role) {
     this.name = name;
     this.password = password;
     this.email = email;
     this.role = role;
+    this.active = true;
+    // L'id es queda a null per defecte fins que JPA el guardi
+}
+   // Constructor per als clients
+public User(String name, String password, String email) {
+    this.name = name;
+    this.password = password;
+    this.email = email;
+    this.role = "CLIENT";
     this.active = true;
     // L'id es queda a null per defecte fins que JPA el guardi
 }
