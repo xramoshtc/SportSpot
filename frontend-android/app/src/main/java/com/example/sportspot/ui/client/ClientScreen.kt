@@ -36,13 +36,15 @@ fun ClientScreen(
     viewModel: ClientViewModel = viewModel(
         factory = ClientViewModel.provideFactory(LocalContext.current)
     ),
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToProfile: () -> Unit   // TEA3 - nou paràmetre
 ) {
     // Observem el token exposat pel ViewModel; pot ser null si no hi ha sessió
     val token by viewModel.token.collectAsState()
 
     // Scope per llançar coroutines des del composable
     val coroutineScope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier
@@ -126,6 +128,25 @@ fun ClientScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
+
+        // TEA3 - Botó per anar al perfil
+        Button(
+            onClick = { onNavigateToProfile() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text("El meu perfil")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
 
         // Botó per tancar sessió; crida al ViewModel i després executa onLogout
         Button(

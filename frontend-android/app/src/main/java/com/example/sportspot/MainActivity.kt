@@ -4,8 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +20,7 @@ import com.example.sportspot.ui.admin.AdminScreen
 import com.example.sportspot.ui.client.ClientScreen
 import com.example.sportspot.ui.login.LoginScreen
 import com.example.sportspot.ui.navigation.AppRoute
+import com.example.sportspot.ui.profile.ProfileScreen
 import com.example.sportspot.ui.session.SessionViewModel
 import com.example.sportspot.ui.theme.SportSpotTheme
 
@@ -63,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 val startDestination = when {
                     token == null -> AppRoute.Login.route
                     role == "admin" -> AppRoute.Admin.route
-                    role == "client" -> AppRoute.Client.route
+                    role == "user" -> AppRoute.Client.route
                     else -> AppRoute.Login.route
                 }
 
@@ -104,9 +111,23 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(AppRoute.Login.route) {
                                     popUpTo(0)
                                 }
+                            },
+                            onNavigateToProfile = {   // TEA3 - nova navegació
+                                navController.navigate(AppRoute.Profile.route)
                             }
                         )
                     }
+
+                    // TEA3 - Pantalla de perfil. Al guardar o tornar, es torna a la pantalla del client.
+                    composable(AppRoute.Profile.route) {
+                        ProfileScreen(
+                            onBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+
                 }
             }
         }

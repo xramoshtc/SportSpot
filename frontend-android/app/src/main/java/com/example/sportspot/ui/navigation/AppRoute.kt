@@ -18,4 +18,7 @@ sealed class AppRoute(val route: String) {
 
     /** Ruta de la pantalla del client. */
     object Client : AppRoute("client")
+
+    /** TEA3 - Ruta de la pantalla de perfil del client. */
+    object Profile : AppRoute("profile")
 }
