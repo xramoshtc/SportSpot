@@ -16,13 +16,13 @@ public class UserClient1 {
         String urlLogout = "http://localhost:8080/api/logout";
         String urlUsers = "http://localhost:8080/api/users";
       urlLogin = "http://10.2.3.145:8080/api/login";
-      urlLogout = "http://10.2.3.145:8080/api/logout";
+     urlLogout = "http://10.2.3.145:8080/api/logout";
      urlUsers = "http://10.2.3.145:8080/api/users";
 
         RestTemplate restTemplate = new RestTemplate();
 
         // --- 1. Login ---
-        LoginRequest loginReq = new LoginRequest("admin", "1234");
+        LoginRequest loginReq = new LoginRequest("joanet", "5678");
        
 
         try {
@@ -56,62 +56,63 @@ public class UserClient1 {
                     
                     System.out.println("Dades obtingudes correctament; NOM: "+ myself.getName());
                     System.out.println("ROLE: " + myself.getRole());
+                    System.out.println("E-MAIL: " + myself.getEmail());
                 } else 
                     System.out.println("Sessió no vàlida o usuari no creat");
                 // --- 2. Crear un nou usuari ---
-                User nouUsuari = new User("usuaritest", "pass1234","usuaritest@test.com","USER");
-                HttpEntity<User> postEntity = new HttpEntity<>(nouUsuari, headers);
-
-                ResponseEntity<User> postResponse = restTemplate.exchange(
-                        urlUsers,
-                        HttpMethod.POST,
-                        postEntity,
-                        User.class
-                );
-
-                System.out.println("\n--- CREACIÓ D'USUARI ---");
-                if (postResponse.getStatusCode() == HttpStatus.CREATED) {
-                    System.out.println("Usuari creat correctament: " + postResponse.getBody());
-                } else {
-                    System.err.println("Error creant usuari: " + postResponse.getStatusCode());
-                }
-
-                // --- 3. Llistar usuaris amb GET ---
-                HttpEntity<Void> getEntity = new HttpEntity<>(headers);
-                ResponseEntity<List> getResponse = restTemplate.exchange(
-                        urlUsers,
-                        HttpMethod.GET,
-                        getEntity,
-                        List.class
-                );
-
-                System.out.println("\n--- LLISTA D'USUARIS ---");
-                System.out.println("Status: " + getResponse.getStatusCode());
-                List<?> users = getResponse.getBody();
-                if (users != null) {
-                    users.forEach(System.out::println);
-                } else {
-                    System.out.println("No s'han trobat usuaris.");
-                }
-                
-                // --- 3. Esborrar usuari ---
-                
-                HttpEntity<Void> delUser = new HttpEntity<>(headers);
-                ResponseEntity<Void> deletionResponse = restTemplate.exchange(
-                        urlUsers + "/usuaritest",
-                        HttpMethod.DELETE,
-                        delUser,
-                        Void.class
-                        );
-                
-                System.out.println("RESULTAT ESBORRAR: " + deletionResponse.getBody());
+//                User nouUsuari = new User("usuaritest", "pass1234","usuaritest@test.com","USER");
+//                HttpEntity<User> postEntity = new HttpEntity<>(nouUsuari, headers);
+//
+//                ResponseEntity<User> postResponse = restTemplate.exchange(
+//                        urlUsers,
+//                        HttpMethod.POST,
+//                        postEntity,
+//                        User.class
+//                );
+//
+//                System.out.println("\n--- CREACIÓ D'USUARI ---");
+//                if (postResponse.getStatusCode() == HttpStatus.CREATED) {
+//                    System.out.println("Usuari creat correctament: " + postResponse.getBody());
+//                } else {
+//                    System.err.println("Error creant usuari: " + postResponse.getStatusCode());
+//                }
+//
+//                // --- 3. Llistar usuaris amb GET ---
+//                HttpEntity<Void> getEntity = new HttpEntity<>(headers);
+//                ResponseEntity<List> getResponse = restTemplate.exchange(
+//                        urlUsers,
+//                        HttpMethod.GET,
+//                        getEntity,
+//                        List.class
+//                );
+//
+//                System.out.println("\n--- LLISTA D'USUARIS ---");
+//                System.out.println("Status: " + getResponse.getStatusCode());
+//                List<?> users = getResponse.getBody();
+//                if (users != null) {
+//                    users.forEach(System.out::println);
+//                } else {
+//                    System.out.println("No s'han trobat usuaris.");
+//                }
+//                
+//                // --- 3. Esborrar usuari ---
+//                
+//                HttpEntity<Void> delUser = new HttpEntity<>(headers);
+//                ResponseEntity<Void> deletionResponse = restTemplate.exchange(
+//                        urlUsers + "/usuaritest",
+//                        HttpMethod.DELETE,
+//                        delUser,
+//                        Void.class
+//                        );
+//                
+//                System.out.println("RESULTAT ESBORRAR: " + deletionResponse.getBody());
                 
                 // --- 4. MODIFIQUEM USUARI ----
                 
-                User dadesModificades = new User("marta","auyeeea", "nou-email",null);
+                User dadesModificades = new User("joanet","5678", "joanet@sportspot.com");
                 HttpEntity<User> putRequest = new HttpEntity<>(dadesModificades, headers);
                 ResponseEntity<User> modResp = restTemplate.exchange(
-                    urlUsers + "/marta",
+                    urlUsers + "/joanet",
                     HttpMethod.PUT,
                     putRequest,
                     User.class
@@ -122,32 +123,32 @@ public class UserClient1 {
                 
              
                 
-                // --- 5. Registre nou usuari (no admin) ---
-               
-                headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                User userReg =  new User("pepeleches","6658","pepe@leches.com");
-                HttpEntity<User> registerUser = new HttpEntity<>(userReg,headers);
-                ResponseEntity<User> regResp = restTemplate.exchange(
-                    urlUsers + "/newuser",
-                    HttpMethod.POST,
-                    registerUser,
-                    User.class
-                );
-                     System.out.println("|n --- REGISTER USER ---");
-                     System.out.println("--- Client REGISTRAT: " + regResp.getBody().getName());
-                     
-                       LoginRequest loginReqCli = new LoginRequest("pepeleches", "6658");
-                       LoginResponse loginRespCli = restTemplate.postForObject(urlLogin, loginReqCli, LoginResponse.class);
-                String token_cli = loginRespCli.getSessionToken();
-                headers.set("Session-token", token_cli);
-                HttpEntity<Void> delClient = new HttpEntity<>(headers);
-                ResponseEntity<Void> deletionResponse2 = restTemplate.exchange(
-                        urlUsers + "/pepeleches",
-                        HttpMethod.DELETE,
-                        delUser,
-                        Void.class
-                        );
+//                // --- 5. Registre nou usuari (no admin) ---
+//               
+//                headers = new HttpHeaders();
+//                headers.setContentType(MediaType.APPLICATION_JSON);
+//                User userReg =  new User("pepeleches","6658","pepe@leches.com");
+//                HttpEntity<User> registerUser = new HttpEntity<>(userReg,headers);
+//                ResponseEntity<User> regResp = restTemplate.exchange(
+//                    urlUsers + "/newuser",
+//                    HttpMethod.POST,
+//                    registerUser,
+//                    User.class
+//                );
+//                     System.out.println("|n --- REGISTER USER ---");
+//                     System.out.println("--- Client REGISTRAT: " + regResp.getBody().getName());
+//                     
+//                       LoginRequest loginReqCli = new LoginRequest("pepeleches", "6658");
+//                       LoginResponse loginRespCli = restTemplate.postForObject(urlLogin, loginReqCli, LoginResponse.class);
+//                String token_cli = loginRespCli.getSessionToken();
+//                headers.set("Session-token", token_cli);
+//                HttpEntity<Void> delClient = new HttpEntity<>(headers);
+//                ResponseEntity<Void> deletionResponse2 = restTemplate.exchange(
+//                        urlUsers + "/pepeleches",
+//                        HttpMethod.DELETE,
+//                        delUser,
+//                        Void.class
+//                        );
                
                 
            
@@ -155,9 +156,9 @@ public class UserClient1 {
                 
                          // --- 4. Logout ---
                 LogoutRequest logoutReq = new LogoutRequest(token);
-                  LogoutRequest logoutReqCli = new LogoutRequest(token_cli);
+//                  LogoutRequest logoutReqCli = new LogoutRequest(token_cli);
                 LoginResponse logoutResp = restTemplate.postForObject(urlLogout, logoutReq, LoginResponse.class);
-                LoginResponse logoutRespCli = restTemplate.postForObject(urlLogout, logoutReqCli, LoginResponse.class);
+//                LoginResponse logoutRespCli = restTemplate.postForObject(urlLogout, logoutReqCli, LoginResponse.class);
                 System.out.println("\n--- LOGOUT ---");
                 System.out.println("Success: " + logoutResp.isSuccess());
                 System.out.println("Codi: " + logoutResp.getResultCode());

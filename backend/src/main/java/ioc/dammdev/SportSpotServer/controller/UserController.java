@@ -193,6 +193,7 @@ public ResponseEntity<User> getMyProfile(
             @PathVariable String name,
             @RequestBody User userUpdates,
             @RequestHeader("Session-Token") String token) {
+
         
         if (!userService.isAdmin(token)){
             if (!userService.isTokenOfName(token, name)) 

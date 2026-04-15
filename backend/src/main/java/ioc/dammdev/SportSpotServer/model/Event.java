@@ -8,6 +8,6 @@ package ioc.dammdev.SportSpotServer.model;
  *
  * @author Gess
  */
-public class Equipment {
+public class Event {
     
 }
