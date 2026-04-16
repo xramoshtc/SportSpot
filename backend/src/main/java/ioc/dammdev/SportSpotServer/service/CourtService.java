@@ -61,4 +61,48 @@ public class CourtService {
     public Optional<Court> getCourtById(Long id) {
         return courtRepository.findById(id);
     }
+    
+    /**
+     * Actualitza una pista existent a la base de dades.
+     * Només els usuaris amb rol ADMIN poden realitzar aquesta operació.
+     *  @param id L'ID de la pista a actualitzar.
+     * @param newData Objecte Court amb les dades actualitzades.
+     * @param token Token de sessió per validar els permisos d'administrador.
+     * @return La pista actualitzada o null si l'usuari no és admin o la pista no existeix.
+     */
+    public Court updateCourt(Long id, Court newData, String token) {
+        if (!userService.isAdmin(token)) {
+            return null;
+        }
+        
+        return courtRepository.findById(id).map(court -> {
+            court.setName(newData.getName());
+            court.setType(newData.getType());
+            court.setLocation(newData.getLocation());
+            court.setPricePerHour(newData.getPricePerHour());
+            court.setCapacity(newData.getCapacity());
+            return courtRepository.save(court);
+        }).orElse(null);
+    }
+
+    /**
+     * Elimina una pista de la base de dades.
+     * Abans d'eliminar, verifica que l'usuari tingui permisos d'administrador.
+     *  @param id L'identificador únic de la pista.
+     * @param token Token de sessió de l'administrador.
+     * @return true si s'ha eliminat correctament, false en cas contrari.
+     */
+    public boolean deleteCourt(Long id, String token) {
+        if (!userService.isAdmin(token)) {
+            return false;
+        }
+        
+        if (courtRepository.existsById(id)) {
+            courtRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+    
+    
 }

@@ -38,7 +38,7 @@ class CourtServiceTests {
 
     @BeforeEach
     void setUp() {
-        testCourt = new Court(1L, "Pista 1", "Pàdel", 20.0, "Pavelló Nord");
+        testCourt = new Court(1L, "Pista 1", "Pàdel", 20.0, 12,"Pavelló Nord");
     }
 
     /**

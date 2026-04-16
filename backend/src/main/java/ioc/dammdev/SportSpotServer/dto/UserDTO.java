@@ -4,19 +4,13 @@
  */
 package ioc.dammdev.SportSpotServer.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * DTO per enviar dades d'usuari de forma segura
  * @author Gess
  */
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 public class UserDTO {
     private Long id;
     private String name;

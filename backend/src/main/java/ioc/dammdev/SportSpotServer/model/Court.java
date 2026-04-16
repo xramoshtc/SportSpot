@@ -31,9 +31,12 @@ public class Court {
     private double pricePerHour;
     
     @Column(nullable = false)
+    private int capacity;
+    
+    @Column(nullable = false)
     private String location;
     
-    public Court(String name, String type, double pricePerHour, String location){
+    public Court(String name, String type, double pricePerHour,int capacity, String location){
         this.name = name;
         this.type = type;
         this.pricePerHour = pricePerHour;

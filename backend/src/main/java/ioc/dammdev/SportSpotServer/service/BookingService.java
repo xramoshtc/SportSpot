@@ -1,9 +1,11 @@
 package ioc.dammdev.SportSpotServer.service;
 
+import ioc.dammdev.SportSpotServer.dto.BookingRequest;
 import ioc.dammdev.SportSpotServer.model.Booking;
 import ioc.dammdev.SportSpotServer.model.Court;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.BookingRepository;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +59,7 @@ public class BookingService {
 
     /**
      * Retorna les reserves de l'usuari loguejat.
+     * @param token :token de sessió
      */
     public List<Booking> getMyBookings(String token) {
         if (!userService.isValidSession(token)) return null;
@@ -66,6 +69,7 @@ public class BookingService {
 
     /**
      * Retorna totes les reserves d'una pista per veure disponibilitat.
+     * @param courtId : id de la pista reservada
      */
     public List<Booking> getBookingsByCourt(Long courtId) {
         return bookingRepository.findByCourtId(courtId);
@@ -73,6 +77,8 @@ public class BookingService {
 
     /**
      * Elimina una reserva.
+     * @param id : codi de la reserva
+     * @param token : codii de la sessió
      */
     public boolean deleteBooking(Long id, String token) {
         if (!userService.isValidSession(token)) return false;
@@ -87,5 +93,33 @@ public class BookingService {
             return true;
         }
         return false;
+    }
+    
+    /**
+     * Actualitza una reserva existent.
+     * Permet modificar la data, l'hora i la durada d'una reserva. 
+     * Valida que qui fa la petició sigui el propietari o un administrador.
+     * @param id L'identificador de la reserva a modificar.
+     * @param newData Dades de la nova reserva (courtId, dateTime, duration).
+     * @param token Token de sessió per verificar la identitat i permisos.
+     * @return La reserva actualitzada o null si no existeix o no té permisos.
+     */
+    public Booking updateBooking(Long id, BookingRequest newData, String token) {
+        User currentUser = userService.getUserByToken(token);
+        if (currentUser == null) return null;
+
+        return bookingRepository.findById(id).map(booking -> {
+            // Verificació de propietat o rol ADMIN
+            if (booking.getUser().getId().equals(currentUser.getId()) || 
+                currentUser.getRole().equals("ADMIN")) {
+                
+                // Actualitzem els camps (podríem afegir validació de disponibilitat aquí)
+                booking.setDateTime(LocalDateTime.parse(newData.getDateTime()));
+                booking.setDurationMinutes(newData.getDurationMinutes());
+                
+                return bookingRepository.save(booking);
+            }
+            return null;
+        }).orElse(null);
     }
 }

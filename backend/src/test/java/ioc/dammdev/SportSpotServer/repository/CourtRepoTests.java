@@ -22,7 +22,7 @@ class CourtRepoTests {
     @Test
     void whenFindByName_thenReturnCourt() {
         // GIVEN
-        Court court = new Court(null, "Pista 5", "Tennis", 15.0, "Valencia");
+        Court court = new Court(null, "Pista 5", "Tennis", 15.0, 4, "Valencia");
         courtRepository.save(court);
 
         // WHEN
@@ -35,7 +35,7 @@ class CourtRepoTests {
     @Test
     void whenSaveCourtWithLocation_thenReturnCorrectLocation() {
         // GIVEN
-        Court court = new Court(null, "Pista 7", "Basket", 12.0, "Pavelló Oest");
+        Court court = new Court(null, "Pista 7", "Basket", 12.0, 4,"Pavelló Oest");
         courtRepository.save(court);
 
         // WHEN

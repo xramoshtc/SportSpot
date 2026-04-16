@@ -47,7 +47,7 @@ class BookingServiceTests {
     @BeforeEach
     void setUp() {
         testUser = new User(1L, "Gess", "1234", "gess@test.com", "USER", true);
-        testCourt = new Court(10L, "Pista Central", "Pàdel", 20.0, "Nord");
+        testCourt = new Court(10L, "Pista Central", "Pàdel", 20.0, 4, "Nord");
         testBooking = new Booking(null, LocalDateTime.now(), 60, null, null);
     }
 

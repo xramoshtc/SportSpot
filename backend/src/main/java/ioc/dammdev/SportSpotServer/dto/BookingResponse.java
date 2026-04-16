@@ -4,15 +4,20 @@
  */
 package ioc.dammdev.SportSpotServer.dto;
 
+import java.time.LocalDateTime;
+import lombok.Data;
+
 /**
  *
  * @author Gess
  */
+
+@Data
 public class BookingResponse {
     private Long id;
-    private String courtName;
-    private String location;
-    private String dateTime;
-    private int duration;
+    private LocalDateTime dateTime;
+    private int durationMinutes;
     private String userName; // Només el nom, per seguretat
+    private String courtName; //Nom de la pista
+    private String location;  //On és la pista
 }

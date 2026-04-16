@@ -4,16 +4,14 @@
  */
 package ioc.dammdev.SportSpotServer.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * Data-Transfer_object  de resposta que retorna el servidor després d'un intent de login.
  * @author Gess Montalbán
  */
 
-@Getter
-@Setter
+@Data
 public class LoginResponse {
     
     /** Estat de la petició: true: success, false:failure     */

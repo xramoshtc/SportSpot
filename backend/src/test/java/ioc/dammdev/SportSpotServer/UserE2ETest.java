@@ -36,6 +36,7 @@ public class UserE2ETest {
 
     private UserClient userClient;
     private String adminToken;
+    
 
     @BeforeEach
     void setUp() {
