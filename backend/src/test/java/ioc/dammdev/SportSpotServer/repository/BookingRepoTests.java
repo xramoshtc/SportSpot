@@ -39,7 +39,7 @@ class BookingRepoTests {
         User user = new User(null, "TestUser", "pass", "test@test.com", "USER", true);
         savedUser = entityManager.persistFlushFind(user);
 
-        Court court = new Court("Pista Central", "Pàdel", 25.0, 12,"Valencia");
+        Court court = new Court(null,"Pista Central", "Pàdel", 25.0, 12,"Valencia");
         savedCourt = entityManager.persistFlushFind(court);
     }
 
