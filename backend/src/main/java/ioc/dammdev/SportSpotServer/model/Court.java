@@ -36,12 +36,6 @@ public class Court {
     @Column(nullable = false)
     private String location;
     
-    public Court(String name, String type, double pricePerHour,int capacity, String location){
-        this.name = name;
-        this.type = type;
-        this.pricePerHour = pricePerHour;
-        this.location = location;
-    }
     
 }
 
