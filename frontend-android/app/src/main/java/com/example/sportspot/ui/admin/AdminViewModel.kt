@@ -39,6 +39,21 @@ class AdminViewModel(
         initialValue = ""
     )
 
+    /**
+     * Username exposat com a StateFlow.
+     *
+     * S'utilitza `stateIn` per convertir el Flow del DataStore en un StateFlow
+     * que es pot observar des de la UI. El valor inicial és una cadena buida.
+     *
+     * @author Jesús Ramos
+     *
+     */
+    val username = dataStore.usernameFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        initialValue = ""
+    )
+
     companion object {
         /**
          * Factory per crear una instància d'AdminViewModel amb les dependències
@@ -54,7 +69,7 @@ class AdminViewModel(
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
-                    val dataStore = DataStoreManager(context)
+                    val dataStore = DataStoreManager(context.applicationContext)
                     val repository = AuthRepository(dataStore)
 
                     return AdminViewModel(

@@ -30,11 +30,13 @@ class SessionViewModel(private val dataStore: DataStoreManager) : ViewModel() {
      * - Si no hi ha token, emetrà `null`.
      *
      */
+
     val token = dataStore.tokenFlow
-        .stateIn(viewModelScope,SharingStarted.Eagerly,null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LOADING)
 
     val role = dataStore.roleFlow
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LOADING)
+
 
     fun saveSession(token: String, role: String) {
         viewModelScope.launch {
@@ -58,8 +60,11 @@ class SessionViewModel(private val dataStore: DataStoreManager) : ViewModel() {
         fun provideFactory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SessionViewModel(DataStoreManager(context)) as T
+                    return SessionViewModel(DataStoreManager(context.applicationContext)) as T
                 }
             }
+        const val LOADING = "__loading__"
     }
+
+
 }

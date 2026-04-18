@@ -1,7 +1,7 @@
 package com.example.sportspot.domain.model
 
 /**
- * TEA3 - Representa el perfil complet d'un usuari autenticat.
+ * Representa el perfil complet d'un usuari autenticat.
  *
  * Conté tota la informació de l'usuari retornada pel servidor
  *

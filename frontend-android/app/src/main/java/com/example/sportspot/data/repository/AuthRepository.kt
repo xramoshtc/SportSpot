@@ -53,9 +53,9 @@ class AuthRepository(
         }
 
         val normalizedRole = response.role.lowercase()
-
         dataStore.saveToken(response.sessionToken)
         dataStore.saveRole(normalizedRole)
+        dataStore.saveUsername(user)
 
         return User(
             role = normalizedRole,
@@ -79,6 +79,7 @@ class AuthRepository(
         api.logout(LogoutRequest(token))
         dataStore.clearToken()
         dataStore.clearRole()
+        dataStore.clearUsername()
     }
 
 

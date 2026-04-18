@@ -7,6 +7,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -18,7 +19,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import com.example.sportspot.R
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 /**
  * Pantalla de login senzilla.
@@ -34,7 +40,8 @@ import androidx.compose.ui.unit.dp
 @SuppressLint("ContextCastToActivity")
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (User) -> Unit
+    onLoginSuccess: (User) -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
     // Context actual per crear el ViewModel amb la factory
     val context = LocalContext.current
@@ -54,18 +61,20 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Títol lleuger
-        Text(
-            text = "SportSpot",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+        // Logo SportSpot
+        Image(
+            painter = painterResource(id = R.drawable.logo_complet),
+            contentDescription = "SportSpot logo",
             modifier = Modifier
-                .padding(bottom = 16.dp)
+                .fillMaxWidth()
+                .height(95.dp)
+                .padding(bottom = 24.dp)
         )
 
         // Camp per introduir l'usuari
@@ -84,6 +93,7 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contrassenya") },
+            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -105,6 +115,18 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // TEA3 - Botó per anar a la pantalla de registre
+        TextButton(
+            onClick = { onNavigateToRegister() }
+        ) {
+            Text(
+                text = "Encara no tens compte? Registra't",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
 
         // Mostrem missatges segons l'estat actual
         when (state) {
@@ -134,7 +156,8 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { activity?.finish() },
+            onClick = {
+                activity?.finish() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -146,4 +169,5 @@ fun LoginScreen(
             Text("Sortir")
         }
     }
+
 }

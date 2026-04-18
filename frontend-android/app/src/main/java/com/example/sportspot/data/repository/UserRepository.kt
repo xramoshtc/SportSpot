@@ -1,12 +1,13 @@
 package com.example.sportspot.data.repository
 
 
+import com.example.sportspot.data.remote.RegisterRequest
 import com.example.sportspot.data.remote.RetrofitInstance
 import com.example.sportspot.data.remote.UpdateUserRequest
 import com.example.sportspot.domain.model.UserProfile
 
 /**
- * TEA3 - Repositori que gestiona les operacions sobre l'usuari.
+ * Repositori que gestiona les operacions sobre l'usuari.
  *
  * S'encarrega de cridar l'API per obtenir i modificar les dades
  * de l'usuari autenticat
@@ -48,7 +49,29 @@ class UserRepository {
     }
 
     /**
-     * TEA3 - Modifica les dades de l'usuari autenticat.
+     * Registra un nou usuari client sense token.
+     *
+     * @author Jesús Ramos
+     *
+     * @param name Nom d'usuari.
+     * @param password Contrasenya.
+     * @param email Correu electrònic.
+     * @return [UserProfile] amb les dades de l'usuari creat.
+     * @throws Exception si la crida falla.
+     */
+    suspend fun registerUser(name: String, password: String, email: String): UserProfile {
+        val response = api.register(RegisterRequest(name, password, email))
+        return UserProfile(
+            id = response.id,
+            name = response.name,
+            email = response.email,
+            role = response.role,
+            active = response.active
+        )
+    }
+
+    /**
+     * Modifica les dades de l'usuari autenticat.
      *
      * Fa una crida PUT al servidor amb el token de sessió i les
      * noves dades. Retorna un [UserProfile] actualitzat si tot va bé.
@@ -72,7 +95,8 @@ class UserRepository {
     ): UserProfile {
         val request = UpdateUserRequest(
             name = newName,
-            password = newPassword,
+            // Si password està buit, enviem null perquè el servidor no el modifiqui
+            password = newPassword.ifBlank { null },
             email = newEmail,
             role = null
         )
@@ -88,5 +112,21 @@ class UserRepository {
             role = response.role,
             active = response.active
         )
+    }
+
+    /**
+     * Elimina el compte de l'usuari autenticat.
+     *
+     * Fa una crida DELETE al servidor amb el token de sessió
+     * i el nom de l'usuari a eliminar.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió per autenticar la petició.
+     * @param name Nom de l'usuari a eliminar.
+     * @throws Exception si la crida falla o el token no és vàlid.
+     */
+    suspend fun deleteUser(token: String, name: String) {
+        api.deleteUser(name = name, token = token)
     }
 }

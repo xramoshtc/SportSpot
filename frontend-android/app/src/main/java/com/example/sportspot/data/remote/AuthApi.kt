@@ -1,6 +1,8 @@
 package com.example.sportspot.data.remote
 
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -63,9 +65,21 @@ data class LogoutResponse(
     val role: String
 )
 
+/**
+ * Petició per registrar un nou usuari client sense token.
+ *
+ * @property name Nom d'usuari.
+ * @property password Contrasenya.
+ * @property email Correu electrònic.
+ */
+data class RegisterRequest(
+    val name: String,
+    val password: String,
+    val email: String
+)
 
 /**
- * TEA3 - Dades necessàries per actualitzar la informació d'un usuari.
+ * Dades necessàries per actualitzar la informació d'un usuari.
  *
  * Aquest objecte s'envia al servidor en una petició PUT per modificar
  * les dades d'un usuari existent.
@@ -77,13 +91,13 @@ data class LogoutResponse(
  */
 data class UpdateUserRequest(
     val name: String,
-    val password: String,
+    val password: String?,
     val email: String,
     val role: String?
 )
 
 /**
- * TEA3 - Resposta del servidor amb les dades d'un usuari.
+ * Resposta del servidor amb les dades d'un usuari.
  *
  * Aquesta resposta es retorna després d'operacions com la consulta,
  * modificació o creació d'un usuari.
@@ -102,6 +116,110 @@ data class UserResponse(
     val email: String,
     val role: String,
     val active: Boolean
+)
+
+/**
+ * Resposta del servidor amb les dades d'una pista esportiva.
+ *
+ * Aquest objecte es retorna en consultes de pistes disponibles o
+ * després de crear o modificar una pista.
+ *
+ * @property id Identificador únic de la pista.
+ * @property name Nom de la pista.
+ * @property type Tipus d'esport associat.
+ * @property location Localització física de la pista.
+ * @property pricePerHour Preu de lloguer per hora.
+ * @property capacity Aforament màxim de la pista.
+ */
+data class CourtResponse(
+    val id: Long,
+    val name: String,
+    val type: String,
+    val location: String,
+    val pricePerHour: Double,
+    val capacity: Int
+)
+
+/**
+ * Petició per crear una nova pista esportiva.
+ *
+ * @property name Nom de la pista.
+ * @property type Tipus d'esport.
+ * @property pricePerHour Preu per hora en euros.
+ * @property location Localització de la pista.
+ *
+ * @author Jesús Ramos
+ */
+data class CreateCourtRequest(
+    val name: String,
+    val type: String,
+    val pricePerHour: Double,
+    val location: String
+)
+
+/**
+ * Petició per modificar una pista esportiva existent.
+ *
+ * @property name Nou nom de la pista.
+ * @property type Nou tipus d'esport.
+ * @property pricePerHour Nou preu per hora en euros.
+ * @property location Nova localització de la pista.
+ * @property capacity Aforament de la pista.
+ *
+ * @author Jesús Ramos
+ */
+data class UpdateCourtRequest(
+    val name: String,
+    val type: String,
+    val pricePerHour: Double,
+    val location: String,
+    val capacity: Int = 0
+)
+
+
+/**
+ * Petició per crear una nova reserva.
+ *
+ * @property courtId ID de la pista a reservar.
+ * @property dateTime Data i hora en format ISO "YYYY-MM-DDTHH:MM".
+ * @property durationMinutes Durada en minuts.
+ */
+data class CreateBookingRequest(
+    val courtId: Long,
+    val dateTime: String,
+    val durationMinutes: Int
+)
+
+/**
+ * Petició per modificar una reserva existent.
+ *
+ * @property dateTime Nova data i hora en format ISO.
+ * @property durationMinutes Nova durada en minuts.
+ */
+data class UpdateBookingRequest(
+    val dateTime: String,
+    val durationMinutes: Int
+)
+
+/**
+ * Resposta del servidor amb les dades d'una reserva.
+ *
+ * Inclou informació de la pista i de l'usuari per facilitar-ne la visualització.
+ *
+ * @property id Identificador únic de la reserva.
+ * @property dateTime Data i hora de la reserva.
+ * @property durationMinutes Durada total en minuts.
+ * @property userName Nom de l'usuari que ha fet la reserva.
+ * @property courtName Nom de la pista reservada.
+ * @property location Ubicació de la pista.
+ */
+data class BookingResponse(
+    val id: Long,
+    val dateTime: String,
+    val durationMinutes: Int,
+    val userName: String,
+    val courtName: String,
+    val location: String
 )
 
 
@@ -139,7 +257,18 @@ interface AuthApi {
     suspend fun logout(@Body request: LogoutRequest): LogoutResponse
 
     /**
-     * TEA 3 - Crida PUT per actualitzar les dades d'un usuari existent.
+     * Crida POST pública per registrar un nou usuari client.
+     *
+     * @author Jesús Ramos
+     *
+     * @param request Objecte amb les dades del nou usuari.
+     * @return UserResponse amb les dades de l'usuari creat.
+     */
+    @POST("api/users/newuser")
+    suspend fun register(@Body request: RegisterRequest): UserResponse
+
+    /**
+     * Crida PUT per actualitzar les dades d'un usuari existent.
      *
      * Aquesta operació permet modificar la informació d'un usuari identificat
      * pel seu nom. Requereix un token de sessió vàlid per autoritzar la petició.
@@ -160,7 +289,7 @@ interface AuthApi {
     ): UserResponse
 
     /**
-     * TEA3 - Crida GET per obtenir el perfil de l'usuari autenticat.
+     * Crida GET per obtenir el perfil de l'usuari autenticat.
      *
      * @author Jesús Ramos
      *
@@ -172,5 +301,126 @@ interface AuthApi {
         @Header("Session-Token") token: String
     ): UserResponse
 
+    /**
+     * Crida DELETE per eliminar un usuari existent.
+     *
+     * @author Jesús Ramos
+     *
+     * @param name Nom de l'usuari a eliminar (s'envia a la URL).
+     * @param token Token de sessió per autenticar la petició.
+     */
+    @DELETE("api/users/{name}")
+    suspend fun deleteUser(
+        @Path("name") name: String,
+        @Header("Session-Token") token: String
+    ): Response<Unit>
+
+    /**
+     * Retorna la llista de totes les pistes esportives disponibles.
+     *
+     * @param token Token de sessió per autenticar la petició.
+     * @return Llista d'objectes [CourtResponse].
+     */
+    @GET("api/courts")
+    suspend fun getCourts(
+        @Header("Session-Token") token: String
+    ): List<CourtResponse>
+
+    /**
+     * Crea una nova reserva per a l'usuari autenticat.
+     *
+     * @param token Token de sessió.
+     * @param request Dades de la reserva.
+     * @return [BookingResponse] amb la reserva confirmada.
+     */
+    @POST("api/bookings")
+    suspend fun createBooking(
+        @Header("Session-Token") token: String,
+        @Body request: CreateBookingRequest
+    ): BookingResponse
+
+    /**
+     * Retorna totes les reserves de l'usuari autenticat.
+     *
+     * @param token Token de sessió.
+     * @return Llista de [BookingResponse].
+     */
+    @GET("api/bookings/my")
+    suspend fun getMyBookings(
+        @Header("Session-Token") token: String
+    ): List<BookingResponse>
+
+    /**
+     * Cancel·la una reserva pel seu ID.
+     *
+     * @param id Identificador de la reserva a cancel·lar.
+     * @param token Token de sessió.
+     */
+    @DELETE("api/bookings/{id}")
+    suspend fun deleteBooking(
+        @Path("id") id: Long,
+        @Header("Session-Token") token: String
+    ): Response<Unit>
+
+    /**
+     * Modifica l'horari o durada d'una reserva existent.
+     *
+     * @param id Identificador de la reserva a modificar.
+     * @param token Token de sessió.
+     * @param request Noves dades de la reserva.
+     * @return [BookingResponse] amb la reserva actualitzada.
+     */
+    @PUT("api/bookings/{id}")
+    suspend fun updateBooking(
+        @Path("id") id: Long,
+        @Header("Session-Token") token: String,
+        @Body request: UpdateBookingRequest
+    ): BookingResponse
+
+    /**
+     * Crida POST per crear una nova pista. Només per a administradors.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió d'administrador.
+     * @param request Dades de la nova pista.
+     * @return [CourtResponse] amb la pista creada.
+     */
+    @POST("api/courts")
+    suspend fun createCourt(
+        @Header("Session-Token") token: String,
+        @Body request: CreateCourtRequest
+    ): CourtResponse
+
+    /**
+     * Crida PUT per modificar una pista existent. Només per a administradors.
+     *
+     * @author Jesús Ramos
+     *
+     * @param id Identificador de la pista a modificar.
+     * @param token Token de sessió d'administrador.
+     * @param request Noves dades de la pista.
+     * @return [CourtResponse] amb la pista actualitzada.
+     */
+    @PUT("api/courts/{id}")
+    suspend fun updateCourt(
+        @Path("id") id: Long,
+        @Header("Session-Token") token: String,
+        @Body request: UpdateCourtRequest
+    ): CourtResponse
+
+    /**
+     * Crida DELETE per eliminar una pista existent. Només per a administradors.
+     *
+     * @author Jesús Ramos
+     *
+     * @param id Identificador de la pista a eliminar.
+     * @param token Token de sessió d'administrador.
+     */
+    @DELETE("api/courts/{id}")
+    suspend fun deleteCourt(
+        @Path("id") id: Long,
+        @Header("Session-Token") token: String
+    ): Response<Unit>
 }
 

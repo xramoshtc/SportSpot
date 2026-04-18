@@ -18,6 +18,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Stadium
+import androidx.compose.ui.text.font.FontWeight
 
 /**
  * Pantalla d'administració.
@@ -35,13 +38,18 @@ fun AdminScreen(
     viewModel: AdminViewModel = viewModel(
         factory = AdminViewModel.provideFactory(LocalContext.current)
     ),
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToAdminCourts: () -> Unit
 ) {
     // Observem el token des del ViewModel; pot ser null si no hi ha sessió.
     val token by viewModel.token.collectAsState()
 
+    // Observem el username des del ViewModel; pot ser null si no hi ha sessió.
+    val username by viewModel.username.collectAsState()
+
     // Scope per cridar suspensions
     val coroutineScope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier
@@ -50,7 +58,7 @@ fun AdminScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Icona d'usuari amb fons circular (visual més net)
+        // Icona d'usuari amb fons circular
         Box(
             modifier = Modifier
                 .size(96.dp)
@@ -70,7 +78,7 @@ fun AdminScreen(
 
         // Títol de la pantalla
         Text(
-            text = "Administrador",
+            text = "$username",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -94,67 +102,89 @@ fun AdminScreen(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Card amb contingut d'administració (placeholder)
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        // Primera fila: Gestió de pistes + Tancar sessió
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
+            Card(
+                onClick = { onNavigateToAdminCourts() },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
+                    .weight(1f)
+                    .aspectRatio(1f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                elevation = CardDefaults.cardElevation(6.dp),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = "Zona d'administració",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Stadium,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Gestió de\npistes",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Per afegir més endavant...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
+            Card(
+                onClick = {
+                    coroutineScope.launch {
+                        val success = viewModel.logout()
+                        if (success) onLogout()
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Tancar\nsessió",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Botó per tancar sessió (CTA estilitzat amb el tema)
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    // Es crida al ViewModel per fer logout; si té èxit, es crida onLogout
-                    val success = viewModel.logout()
-                    if (success) {
-                        onLogout()
-                    } else {
-                        println("Error al tancar la sessió")
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            ),
-            shape = MaterialTheme.shapes.small
-        ) {
-            Text("Tancar sessió")
-        }
-
         // Botó per sortir de l'app
         val activity = LocalContext.current as? android.app.Activity
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         Button(
             onClick = { activity?.finish() },

@@ -80,7 +80,7 @@ class LoginViewModel(
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    val dataStore = DataStoreManager(context)
+                    val dataStore = DataStoreManager(context.applicationContext)
                     val repo = AuthRepository(dataStore)
                     val useCase = LoginUseCase(repo)
                     return LoginViewModel(useCase) as T

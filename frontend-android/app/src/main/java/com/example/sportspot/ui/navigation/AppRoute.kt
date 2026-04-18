@@ -19,6 +19,21 @@ sealed class AppRoute(val route: String) {
     /** Ruta de la pantalla del client. */
     object Client : AppRoute("client")
 
-    /** TEA3 - Ruta de la pantalla de perfil del client. */
+    /** Ruta de la pantalla de perfil del client. */
     object Profile : AppRoute("profile")
+
+    /** Ruta de la pantalla de registre. */
+    object Register : AppRoute("register")
+
+    /** Ruta de la pantalla de llistat de pistes. */
+    object Courts : AppRoute("courts")
+
+    /** Ruta de la pantalla de detall d'una pista. Inclou l'ID com a paràmetre. */
+    object CourtDetail : AppRoute("court/{courtId}") {
+        fun createRoute(courtId: Long) = "court/$courtId"
+    }
+    /**R uta de la pantalla de les reserves de l'usuari. */
+    object MyBookings : AppRoute("my-bookings")
+    /** Ruta de la pantalla de gestió de pistes per a l'administrador. */
+    object AdminCourts : AppRoute("admin-courts")
 }

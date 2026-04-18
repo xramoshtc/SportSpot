@@ -20,7 +20,7 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AdminViewModelTest {
+class martaAdminViewModelTest {
 
     // Dispatcher de proves per a corrutines (no fem servir el Main real)
     private val dispatcher = UnconfinedTestDispatcher()

@@ -23,8 +23,7 @@
          *
          * Actualment s'utilitza per guardar, llegir i esborrar el token d'autenticació.
          *
-         * @author Jesús Ramos
-         *
+
          * @param context Context de l'aplicació, necessari per accedir al DataStore.
          */
         class DataStoreManager(private val context: Context) {
@@ -32,21 +31,53 @@
             /**
              * Clau per emmagatzemar el token dins del DataStore.
              *
-             * @author Jesús Ramos
-             *
              * És privada perquè només aquesta classe ha de manipular la clau.
              */
             private val TOKEN_KEY = stringPreferencesKey("token")
-
+            /**
+             * Clau per emmagatzemar el rol de l'usuari.
+             *
+             * S'utilitza per saber si l'usuari és ADMIN o CLIENT.
+             */
             private val ROLE_KEY = stringPreferencesKey("role")
-
+            /**
+             * Clau per emmagatzemar el nom d'usuari.
+             *
+             * Permet identificar l'usuari actual sense haver de consultar el backend.
+             */
+            private val USERNAME_KEY = stringPreferencesKey("username")
+            /**
+             * Desa el nom d'usuari al DataStore.
+             *
+             * @param username Nom d'usuari que volem guardar.
+             */
+            suspend fun saveUsername(username: String) {
+                context.dataStore.edit { prefs ->
+                    prefs[USERNAME_KEY] = username
+                }
+            }
+            /**
+             * Flux que emet el nom d'usuari actual o `null` si no n'hi ha.
+             *
+             * Es pot observar des de ViewModels per reaccionar a canvis.
+             */
+            val usernameFlow: Flow<String?> = context.dataStore.data
+                .map { prefs -> prefs[USERNAME_KEY] }
+            /**
+             * Esborra el nom d'usuari del DataStore.
+             *
+             * Útil quan l'usuari tanca sessió.
+             */
+            suspend fun clearUsername() {
+                context.dataStore.edit { prefs ->
+                    prefs.remove(USERNAME_KEY)
+                }
+            }
 
             /**
              * Desa el token rebut al DataStore.
              *
              * Aquesta funció és `suspend` perquè fa una operació d'E/S asíncrona.
-             *
-             * @author Jesús Ramos
              *
              * @param token Cadena amb el token d'autenticació que volem guardar.
              */
@@ -56,7 +87,13 @@
                 }
             }
 
-
+            /**
+             * Desa el rol de l'usuari (ADMIN o CLIENT).
+             *
+             * S'utilitza per controlar permisos dins de l'aplicació.
+             *
+             * @param role Rol retornat pel backend.
+             */
             suspend fun saveRole(role: String) {
                 context.dataStore.edit { prefs ->
                     prefs[ROLE_KEY] = role
@@ -70,22 +107,22 @@
              * Aquest Flow es pot observar des de ViewModels o altres components per
              * reaccionar quan el token canvia.
              *
-             * @author Jesús Ramos
-             *
              * @return Flow amb el token actual o `null`.
              */
             val tokenFlow: Flow<String?> = context.dataStore.data
                 .map { prefs -> prefs[TOKEN_KEY] }
 
-
+            /**
+             * Flux que emet el rol actual de l'usuari.
+             *
+             * Permet adaptar la UI segons si l'usuari és ADMIN o CLIENT.
+             */
             val roleFlow: Flow<String?> = context.dataStore.data
                 .map { prefs -> prefs[ROLE_KEY] }
 
 
             /**
              * Esborra el token del DataStore.
-             *
-             * @author Jesús Ramos
              *
              * També és `suspend` perquè modifica les preferències de forma asíncrona.
              */
@@ -94,7 +131,11 @@
                     prefs.remove(TOKEN_KEY)
                 }
             }
-
+            /**
+             * Esborra el rol de l'usuari del DataStore.
+             *
+             * Normalment es crida juntament amb `clearToken()` en el procés de logout.
+             */
             suspend fun clearRole() {
                 context.dataStore.edit { prefs ->
                     prefs.remove(ROLE_KEY)

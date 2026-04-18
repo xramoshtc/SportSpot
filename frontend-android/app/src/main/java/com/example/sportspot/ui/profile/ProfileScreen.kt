@@ -1,5 +1,6 @@
 package com.example.sportspot.ui.profile
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -24,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onDeleteAccount: () -> Unit,
     viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.provideFactory(LocalContext.current)
     )
@@ -38,13 +40,20 @@ fun ProfileScreen(
     // Nom original per enviar a la URL, no canvia encara que l'usuari editi el camp
     var originalName by remember { mutableStateOf("") }
 
+    // Ccontrola la visibilitat del diàleg de confirmació
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     // Quan l'estat passa a Success per primera vegada, omplim els camps amb les dades actuals
     LaunchedEffect(uiState) {
-        if (uiState is ProfileUiState.Success && originalName.isEmpty()) {
-            val profile = (uiState as ProfileUiState.Success).profile
-            name = profile.name
-            email = profile.email
-            originalName = profile.name
+        when {
+            uiState is ProfileUiState.Deleted -> onDeleteAccount()
+            uiState is ProfileUiState.LoggedOut -> onDeleteAccount()
+            uiState is ProfileUiState.Success && originalName.isEmpty() -> {
+                val profile = (uiState as ProfileUiState.Success).profile
+                name = profile.name
+                email = profile.email
+                originalName = profile.name
+            }
         }
     }
 
@@ -91,7 +100,15 @@ fun ProfileScreen(
                 CircularProgressIndicator()
             }
 
+            is ProfileUiState.LoggedOut -> {
+                CircularProgressIndicator()
+            }
+
             is ProfileUiState.Idle -> {
+                // No fem res, LaunchedEffect ja ha llançat loadProfile()
+            }
+
+            is ProfileUiState.Deleted -> {
                 // No fem res, LaunchedEffect ja ha llançat loadProfile()
             }
 
@@ -129,12 +146,18 @@ fun ProfileScreen(
                     label = { Text("Nova contrasenya") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
+                Text(
+                    text = "Deixa'l buit per no modificar la contrasenya",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                )
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Botó de guardar canvis
                 Button(
                     onClick = {
+                        Log.d("ProfileScreen", "originalName: $originalName name: $name")
                         viewModel.updateUser(
                             currentName = originalName,
                             newName = name,
@@ -167,6 +190,55 @@ fun ProfileScreen(
                     )
                 ) {
                     Text("Tornar")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Botó per eliminar el compte
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Eliminar compte")
+                }
+
+                // Diàleg de confirmació abans d'eliminar
+                if (showDeleteDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteDialog = false },
+                        title = {
+                            Text("Eliminar compte")
+                        },
+                        text = {
+                            Text("Estàs segur que vols eliminar el teu compte? Aquesta acció no es pot desfer.")
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showDeleteDialog = false
+                                    viewModel.deleteUser(originalName)
+                                }
+                            ) {
+                                Text(
+                                    "Eliminar",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showDeleteDialog = false }
+                            ) {
+                                Text("Cancel·lar")
+                            }
+                        }
+                    )
                 }
             }
         }
