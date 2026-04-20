@@ -7,7 +7,6 @@ import ioc.dammdev.SportSpotServer.model.Court;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.service.BookingService;
 import ioc.dammdev.SportSpotServer.service.CourtService;
-import ioc.dammdev.SportSpotServer.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -160,4 +160,93 @@ void updateBooking_ReturnsUpdatedBooking() throws Exception {
             .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
 }
+@Test
+    void getCourtBookingsByDate_ShouldReturnFilteredList_WhenDateProvided() throws Exception {
+        // GIVEN
+        Long courtId = 1L;
+        String token = "test-token";
+        LocalDateTime filterDate = LocalDateTime.of(2024, 5, 20, 10, 0);
+        
+        // Creem un usuari fent servir el constructor de client que has definit
+        User client = new User("Gess", "password123", "gess@email.com");
+        client.setId(100L); // Simulem que ja té un ID de la base de dades
+
+        // Creem una pista (usant el constructor buit i setters)
+        Court court = new Court();
+        court.setName("Pista Central");
+        court.setLocation("Zona Nord");
+
+        // Simulem les reserves
+        Booking bMatch = new Booking();
+        bMatch.setDateTime(filterDate);
+        bMatch.setUser(client); 
+        bMatch.setCourt(court);
+
+        Booking bNoMatch = new Booking();
+        bNoMatch.setDateTime(filterDate.plusDays(1));
+        bNoMatch.setUser(client);
+        bNoMatch.setCourt(court);
+
+        when(bookingService.getBookingsByCourt(token, courtId)).thenReturn(List.of(bMatch, bNoMatch));
+
+        // WHEN & THEN
+        mockMvc.perform(get("/api/courts/{id}/bookings", courtId)
+                .header("Session-Token", token)
+                .param("date", "2024-05-20T10:00:00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+               
+    }
+
+ /**
+ * Test que verifica que quan no s'envia el paràmetre 'date', 
+ * l'endpoint retorna totes les reserves de la pista.
+ * Corregit: S'instancien User i Court per evitar NullPointerException al mapping.
+ */
+@Test
+void getCourtBookings_ShouldReturnAllBookings_WhenNoDateProvided() throws Exception {
+    // 1. GIVEN: Preparem les dades mínimes que el mapping necessita
+    User mockUser = new User("Joan", "pass123", "joan@test.com");
+    
+    Court mockCourt = new Court();
+    mockCourt.setName("Pista Central");
+    mockCourt.setLocation("Pavelló Blau");
+
+    Booking b1 = new Booking();
+    b1.setUser(mockUser);
+    b1.setCourt(mockCourt);
+    b1.setDateTime(LocalDateTime.now());
+
+    Booking b2 = new Booking();
+    b2.setUser(mockUser);
+    b2.setCourt(mockCourt);
+    b2.setDateTime(LocalDateTime.now().plusHours(1));
+
+    // Configurem el Mock del servei perquè retorni aquestes reserves "omplertes"
+    when(bookingService.getBookingsByCourt(anyString(), anyLong()))
+            .thenReturn(List.of(b1, b2));
+
+    // 2. WHEN & THEN
+    mockMvc.perform(get("/api/courts/1/bookings")
+            .header("Session-Token", "valid-token"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            // Podem verificar que el mapping ha funcionat llegint el JSON de sortida
+            .andExpect(jsonPath("$[0].courtName").value("Pista Central"));
+}
+
+    /**
+     * Test de control d'errors que verifica que el sistema retorna un codi HTTP 204 (No Content) 
+     * si s'accedeix a una pista que no té cap reserva programada.
+     */
+    @Test
+    void getCourtBookings_ShouldReturn204_WhenListIsEmpty() throws Exception {
+        // GIVEN
+        when(bookingService.getBookingsByCourt(anyString(), anyLong())).thenReturn(List.of());
+
+        // WHEN & THEN
+        mockMvc.perform(get("/api/courts/1/bookings")
+                .header("Session-Token", "token"))
+                .andExpect(status().isNoContent());
+    }
 }

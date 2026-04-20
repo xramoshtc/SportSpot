@@ -146,7 +146,7 @@ public ResponseEntity<User> getMyProfile(
     /**
      * Petició per eliminar un usuari de la base de dades a partir del seu nom.
      * Aquesta operació només és permesa per a usuaris amb rol ADMIN.
-     * * @param name Nom de l'usuari que es vol eliminar (rebut a la URL).
+     * @param name Nom de l'usuari que es vol eliminar (rebut a la URL).
      * @param token Token d'autenticació rebut a la capçalera "Session-Token".
      * @return ResponseEntity buit amb codi 204 (No Content) si s'ha eliminat, 
      * 404 (Not Found) si l'usuari no existeix, 
@@ -180,7 +180,7 @@ public ResponseEntity<User> getMyProfile(
      * Petició per modificar un usuari mitjançant una petició PUT.
      * Rep el nom de l'usuari per la URL i l'objecte amb els canvis en el cos (JSON).
      * Requereix un token de sessió vàlid amb privilegis d'administrador.
-     * * @param name Nom de l'usuari passat com a PathVariable.
+     * @param name Nom de l'usuari passat com a PathVariable.
      * @param userUpdates Dades de l'usuari rebudes al RequestBody.
      * @param token Token de sessió rebut a la capçalera "Session-Token".
      * @return {@link ResponseEntity} amb:

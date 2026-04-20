@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -110,4 +111,64 @@ class BookingServiceTests {
         assertTrue(deleted);
         verify(bookingRepository).deleteById(100L);
     }
+    
+    /**
+     * Test que verifica que es retorna una llista de reserves quan la sessió 
+     * és vàlida i la pista existeix. Comprova la integració interna amb el repositori.
+     */
+    @Test
+    void getBookingsByCourt_ShouldReturnList_WhenSessionAndCourtAreValid() {
+        // GIVEN
+        String token = "valid-token";
+        Long courtId = 1L;
+        when(userService.isValidSession(token)).thenReturn(true);
+        when(courtService.getCourtById(courtId)).thenReturn(Optional.of(new Court()));
+        when(bookingRepository.findByCourtId(courtId)).thenReturn(List.of(new Booking(), new Booking()));
+
+        // WHEN
+        List<Booking> result = bookingService.getBookingsByCourt(token, courtId);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(bookingRepository, times(1)).findByCourtId(courtId);
+    }
+
+    /**
+     * Test que verifica que el sistema bloqueja l'accés a les reserves 
+     * si el token de sessió proporcionat no és vàlid o ha caducat.
+     */
+    @Test
+    void getBookingsByCourt_ShouldReturnNull_WhenSessionIsInvalid() {
+        // GIVEN
+        String token = "invalid-token";
+        when(userService.isValidSession(token)).thenReturn(false);
+
+        // WHEN
+        List<Booking> result = bookingService.getBookingsByCourt(token, 1L);
+
+        // THEN
+        assertNull(result);
+        verify(bookingRepository, never()).findByCourtId(anyLong());
+    }
+
+    /**
+     * Test que verifica que es retorna null quan s'intenta consultar 
+     * les reserves d'una pista que no existeix a la base de dades.
+     */
+    @Test
+    void getBookingsByCourt_ShouldReturnNull_WhenCourtNotFound() {
+        // GIVEN
+        String token = "valid-token";
+        when(userService.isValidSession(token)).thenReturn(true);
+        when(courtService.getCourtById(anyLong())).thenReturn(Optional.empty());
+
+        // WHEN
+        List<Booking> result = bookingService.getBookingsByCourt(token, 99L);
+
+        // THEN
+        assertNull(result);
+    }
+    
+    
 }

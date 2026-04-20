@@ -1,6 +1,6 @@
 -- Fem servir MERGE per a tots per evitar errors de duplicitat si el test reinicia el context
-MERGE INTO usuaris (name, password, email, role, active) KEY(name) VALUES ('admin','1234','admin@sportspot.com','ADMIN',true);
-MERGE INTO usuaris (name, password, email, role, active) KEY(name) VALUES ('joanet','5678','joanet@sportspot.com','CLIENT',true);
+MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true,'admin@sportspot.com', 'admin', '1234', 'ADMIN');
+MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'joanet@sportspot.com', 'joanet', '5678', 'CLIENT');
 MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'joan@test.com', 'joan_99', 'pass123', 'USER');
 MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'marta@test.com', 'marta', 'marta2024', 'USER');
 MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'pere@test.com', 'pere_pro', 'pere123', 'USER');

@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO per rebre les peticions de creació i modificació d'esdeveniments.
- * * @param title Títol de l'esdeveniment.
- * @param courtId ID de la pista on es realitza.
- * @param dateTime Data i hora en format ISO-8601.
  * @author Gess Montalbán
  */
 

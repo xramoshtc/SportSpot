@@ -59,7 +59,15 @@ public class UserService {
             return false;
     }
     
-    
+    /**
+     * Crea una nova sessió d'usuari si les credencials són correctes.
+     * Genera un token únic i l'associa al nom d'usuari en memòria.
+     *
+     * @param user Optional amb l'usuari trobat a la base de dades
+     * @param password contrasenya introduïda per l'usuari
+     * @return token de sessió si l'autenticació és correcta, null si falla
+     * @author Gess Montalbán
+     */
     
     public String createSession(Optional<User> user, String password){
         
@@ -96,27 +104,53 @@ public class UserService {
                     return true;
             return false;
     }    
+    
+    /**
+     * Comprova si una sessió està activa al sistema.
+     *
+     * @param token el token de sessió
+     * @return true si la sessió existeix i és activa, false en cas contrari
+     */
     public boolean isValidSession(String token){
         return sessionsActives.containsKey(token);
                               
         
     }
-    
+    /**
+     * Comprova si un usuari ja té una sessió activa.
+     *
+     * @param userName nom de l'usuari
+     * @return true si l'usuari ja està loguejat, false si no té sessió activa
+     */
     public boolean isLogged(String userName){
         if (sessionsActives.containsValue(userName))
             return true;
         else 
             return false;
     }
-            
+    
+    /**
+     * Tanca una sessió eliminant el token del sistema.
+     *
+     * @param token el token de la sessió a eliminar
+     */
     public void closeSession(String token){
         sessionsActives.remove(token);
     }
     
+    /**
+     * Elimina totes les sessions actives del sistema.
+     */
     public void clearSessions(){
         sessionsActives.clear();
     }
     
+    /**
+     * Comprova si el token pertany a un usuari amb rol d'administrador.
+     *
+     * @param token el token de sessió
+     * @return true si l'usuari és ADMIN, false en cas contrari o si el token no és vàlid
+     */
     public boolean isAdmin(String token){
         if (token == null) return false;
         
@@ -151,25 +185,50 @@ public class UserService {
              newUser.setRole("USER"); //Usuari per defecte
          } else {
              role = role.toUpperCase();
-             if (!role.endsWith("ADMIN") && !role.equals("USER") && !role.equals("CLIENT"))
+             if (!role.equals("ADMIN") && !role.equals("USER") && !role.equals("CLIENT"))
                  return null;
              newUser.setRole(role);
          }         
         return userRepository.save(newUser);
     }
-    
+   
+      /**
+     * Retorna la llista de tots els usuaris registrats a la base de dades.
+     *
+     * @return llista d'usuaris
+     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
-    
+
+  
+    /**
+     * Busca un usuari pel seu nom.
+     *
+     * @param name nom de l'usuari
+     * @return Optional amb l'usuari si existeix, buit si no es troba
+     */
     public Optional<User> getUserByName(String name){
         return userRepository.findByName(name);
         
     }
+    
+    /**
+     * Busca un usuari pel seu identificador únic.
+     *
+     * @param id identificador de l'usuari
+     * @return Optional amb l'usuari si existeix, buit si no es troba
+     */
     public Optional<User> getUserById(Long id){
         return userRepository.findById(id);
     }
     
+    /**
+     * Elimina un usuari de la base de dades pel seu ID.
+     *
+     * @param id identificador de l'usuari
+     * @return true si s'ha eliminat correctament, false si no existeix
+     */
     public boolean deleteUser(Long id){
         if (userRepository.existsById(id)){
             userRepository.deleteById(id);
@@ -177,6 +236,13 @@ public class UserService {
         }
         return false;
     }
+    
+    /**
+     * Elimina un usuari de la base de dades a partir del seu nom.
+     *
+     * @param name nom de l'usuari
+     * @return true si l'usuari s'ha eliminat correctament, false si no existeix
+     */
     @Transactional
     public boolean deleteUserByName(String name){
         Optional<User> userBD = userRepository.findByName(name);

@@ -8,12 +8,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Proves de persistència per al repositori de pistes.
  * @author Gess Montalbán
  */
-@DataJpaTest
+@DataJpaTest // Configura H2 en memòria, Hibernate i Spring Data JPA
+@ActiveProfiles("test")   
 class CourtRepoTests {
 
     @Autowired

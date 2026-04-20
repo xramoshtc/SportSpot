@@ -3,9 +3,12 @@ package ioc.dammdev.SportSpotServer.repository;
 import ioc.dammdev.SportSpotServer.model.Booking;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.model.Court;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Repositori per a l'entitat Booking.
@@ -37,4 +40,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @return Llista de reserves de la pista.
      */
     List<Booking> findByCourtId(Long courtId);
+    
+    // Mètode per trobar conflictes de reserves
+
+    
 }

@@ -5,6 +5,7 @@ import ioc.dammdev.SportSpotServer.model.Booking;
 import ioc.dammdev.SportSpotServer.model.Court;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.BookingRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,30 +37,35 @@ public class BookingService {
      * @param token Token de l'usuari que fa la reserva.
      * @return La reserva guardada o null si falla algun requisit.
      */
+    @Transactional
     public Booking createBooking(Long courtId, Booking booking, String token) {
         // 1. Validem sessió i recuperem l'usuari real del HashMap
         if (!userService.isValidSession(token)) {
             return null;
         }
         User user = userService.getUserByToken(token);
+        
 
         // 2. Verifiquem que la pista existeixi
         Optional<Court> court = courtService.getCourtById(courtId);
         if (court.isEmpty()) {
             return null;
         }
+        // 3. Comprovem si hi ha conflicte de reserves
+    
 
-        // 3. Assignem l'usuari i la pista a la reserva
+    // 4. Assignem l'usuari i la pista a la reserva
         booking.setUser(user);
         booking.setCourt(court.get());
 
-        // 4. Guardem (En l'Sprint 3 afegirem la validació de "pista ocupada")
+        // 5. Guardem (En l'Sprint 3 afegirem la validació de "pista ocupada")
         return bookingRepository.save(booking);
     }
 
     /**
      * Retorna les reserves de l'usuari loguejat.
      * @param token :token de sessió
+     * @return Llista de reserves
      */
     public List<Booking> getMyBookings(String token) {
         if (!userService.isValidSession(token)) return null;
@@ -70,15 +76,26 @@ public class BookingService {
     /**
      * Retorna totes les reserves d'una pista per veure disponibilitat.
      * @param courtId : id de la pista reservada
+     * @return Llista de reserves
      */
-    public List<Booking> getBookingsByCourt(Long courtId) {
-        return bookingRepository.findByCourtId(courtId);
+    public List<Booking> getBookingsByCourt(String token, Long courtId) {
+        // 1. Validem sessió i recuperem l'usuari real del HashMap
+        if (!userService.isValidSession(token)) {
+            return null;
+        }
+
+        // 2. Verifiquem que la pista existeixi
+        Optional<Court> court = courtService.getCourtById(courtId);
+        if (court.isPresent())
+            return bookingRepository.findByCourtId(courtId);
+        return null;
     }
 
     /**
      * Elimina una reserva.
      * @param id : codi de la reserva
      * @param token : codii de la sessió
+     * @return true si s'ha eliminat, false si no
      */
     public boolean deleteBooking(Long id, String token) {
         if (!userService.isValidSession(token)) return false;

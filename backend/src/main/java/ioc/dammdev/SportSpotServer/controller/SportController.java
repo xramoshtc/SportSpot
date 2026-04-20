@@ -7,6 +7,7 @@ import ioc.dammdev.SportSpotServer.model.Booking;
 import ioc.dammdev.SportSpotServer.model.Court;
 import ioc.dammdev.SportSpotServer.service.BookingService;
 import ioc.dammdev.SportSpotServer.service.CourtService;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * Controlador principal per a l'activitat esportiva (Pistes i Reserves).
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class SportController {
 
+     
     @Autowired
     private CourtService courtService;
 
@@ -36,7 +39,7 @@ public class SportController {
     public ResponseEntity<List<CourtDTO>> getAllCourts() {
         List<CourtDTO> courts = courtService.getAllCourts().stream()
                 .map(this::mapToCourtDTO)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(courts);
     }
 
@@ -53,7 +56,7 @@ public class SportController {
     /**
      * Actualitza les dades d'una pista existent.
      * Només accessible per a usuaris amb rol ADMIN.
-     * * @param token El token de sessió de l'administrador.
+     * @param token El token de sessió de l'administrador.
      * @param id L'identificador de la pista a modificar.
      * @param courtData Objecte amb les noves dades de la pista.
      * @return ResponseEntity amb el CourtDTO actualitzat (200 OK) o 403 Forbidden.
@@ -70,7 +73,7 @@ public class SportController {
     /**
      * Elimina una pista del sistema de forma permanent.
      * Operació restringida a administradors.
-     * * @param token El token de sessió de l'administrador.
+     * @param token El token de sessió de l'administrador.
      * @param id L'identificador de la pista a esborrar.
      * @return 204 No Content si s'ha esborrat, o 403 Forbidden si no té permisos.
      */
@@ -80,10 +83,49 @@ public class SportController {
         boolean deleted = courtService.deleteCourt(id, token);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+    
+       /**
+     * Obté la llista de reserves d'una pista. Si s'inclou la data filtrarà per dia.
+     * @param token El token de sessió de l'administrador.
+     * @param id L'identificador de la pista a consultar.
+     * @param date
+     * @return ResponseEntity amb la llista de reserves (200 OK), 204 No Content si no hi ha reserves.
+     */
+    @GetMapping("/courts/{id}/bookings")
+    public ResponseEntity<List<BookingResponse>> getCourtBookingsByDate(@RequestHeader("Session-Token") String token,
+                                                                    @PathVariable Long id,
+                                                                    @RequestParam(name = "date", required = false)
+                                                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date
+                                                                    ){
+        
+        //1. Obtenim les reserves de la pista
+        List<Booking> existingBookings = bookingService.getBookingsByCourt(token,id);
+        if (existingBookings == null || existingBookings.isEmpty())
+           return  ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        
+        //2. Filtrem per data exacta
+        List<BookingResponse> filteredBookings = existingBookings.stream()
+                                                        .filter(b -> date == null || b.getDateTime().equals(date))
+                                                        .map(b -> {
+                                                            BookingResponse res = this.mapToBookingResponse(b);
+                                                            res.setUserName(null); //No retornem l'usuari de la reserva per privacitat
+                                                            return res;
+                                                                })
+                                                        .toList();
+        return ResponseEntity.ok(filteredBookings); 
+               
+        
+        
+    }
 
 
     // --- ENDPOINTS DE RESERVES ---
-
+    /**
+     * Crea una nova reserva d'una pista. Si s'inclou la data filtrarà per dia.
+     * @param token El token de sessió de l'administrador.
+     * @param request Reserva a desar
+     * @return ResponseEntity amb la reserva (200 OK), 204 No Content si no hi ha reserves.
+     */
     @PostMapping("/bookings")
     public ResponseEntity<BookingResponse> createBooking(@RequestHeader("Session-Token") String token,
                                                         @RequestBody BookingRequest request) {
@@ -109,6 +151,8 @@ public class SportController {
                 .map(this::mapToBookingResponse)
                 .collect(Collectors.toList()));
     }
+    
+  
 
    
     /**

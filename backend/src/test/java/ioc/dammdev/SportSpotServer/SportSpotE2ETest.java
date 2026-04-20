@@ -74,7 +74,7 @@ public class SportSpotE2ETest {
         userToken = userService.createSession(Optional.of(user), "1234");
     }
 
-    // --- TESTS D'USUARI (ELS TEUS ORIGINALS) ---
+    // --- TESTS D'USUARI ADMIN  ---
 
     @Test
     void whenAdminRequestsAllUsers_thenReturnsSuccess() {
@@ -107,6 +107,7 @@ public class SportSpotE2ETest {
         assertThat(userRepository.findByName("victim")).isEmpty();
     }
 
+     // --- TESTS D'USUARI CLIENT  ---
     @Test
     void whenClientUsesInvalidToken_thenReturns401() {
         HttpHeaders headers = new HttpHeaders();

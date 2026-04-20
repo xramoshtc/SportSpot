@@ -13,13 +13,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Tests d'unitat per al EventRepository.
  * Verifica que les consultes personalitzades i les relacions JPA funcionen segons el disseny.
  * @author Gess Montalbán
  */
-@DataJpaTest
+@DataJpaTest // Configura H2 en memòria, Hibernate i Spring Data JPA
+@ActiveProfiles("test")   
 class EventRepoTests {
 
     @Autowired
