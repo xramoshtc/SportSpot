@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AdminForm));
             btnLogout = new Button();
             panel1 = new Panel();
+            btnUsers = new Button();
             btnBook = new Button();
             btnCourts = new Button();
             btnPrivate = new Button();
@@ -38,13 +39,11 @@
             pictureBox1 = new PictureBox();
             lblTittleHome = new Label();
             lblText1 = new Label();
-            panel2 = new Panel();
-            lblText2 = new Label();
+            pnlContent = new Panel();
             btnPrivate2 = new Button();
             btnNewBook = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            panel2.SuspendLayout();
             SuspendLayout();
             // 
             // btnLogout
@@ -56,7 +55,7 @@
             btnLogout.ForeColor = Color.White;
             btnLogout.Image = (Image)resources.GetObject("btnLogout.Image");
             btnLogout.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLogout.Location = new Point(0, 435);
+            btnLogout.Location = new Point(0, 508);
             btnLogout.Name = "btnLogout";
             btnLogout.Padding = new Padding(10, 0, 0, 0);
             btnLogout.Size = new Size(357, 67);
@@ -71,6 +70,7 @@
             // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel1.BackColor = Color.FromArgb(51, 102, 204);
+            panel1.Controls.Add(btnUsers);
             panel1.Controls.Add(btnBook);
             panel1.Controls.Add(btnCourts);
             panel1.Controls.Add(btnPrivate);
@@ -79,8 +79,28 @@
             panel1.Controls.Add(btnLogout);
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(357, 795);
+            panel1.Size = new Size(357, 913);
             panel1.TabIndex = 1;
+            // 
+            // btnUsers
+            // 
+            btnUsers.BackColor = Color.FromArgb(51, 102, 204);
+            btnUsers.FlatAppearance.BorderSize = 0;
+            btnUsers.FlatStyle = FlatStyle.Flat;
+            btnUsers.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            btnUsers.ForeColor = Color.White;
+            btnUsers.Image = (Image)resources.GetObject("btnUsers.Image");
+            btnUsers.ImageAlign = ContentAlignment.MiddleLeft;
+            btnUsers.Location = new Point(0, 435);
+            btnUsers.Name = "btnUsers";
+            btnUsers.Padding = new Padding(10, 0, 0, 0);
+            btnUsers.Size = new Size(357, 67);
+            btnUsers.TabIndex = 5;
+            btnUsers.Text = "Usuaris";
+            btnUsers.TextAlign = ContentAlignment.MiddleLeft;
+            btnUsers.TextImageRelation = TextImageRelation.ImageBeforeText;
+            btnUsers.UseVisualStyleBackColor = false;
+            btnUsers.Click += btnUsers_Click;
             // 
             // btnBook
             // 
@@ -100,6 +120,7 @@
             btnBook.TextAlign = ContentAlignment.MiddleLeft;
             btnBook.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnBook.UseVisualStyleBackColor = false;
+            btnBook.Click += btnBook_Click;
             // 
             // btnCourts
             // 
@@ -119,6 +140,7 @@
             btnCourts.TextAlign = ContentAlignment.MiddleLeft;
             btnCourts.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnCourts.UseVisualStyleBackColor = false;
+            btnCourts.Click += btnCourts_Click;
             // 
             // btnPrivate
             // 
@@ -138,6 +160,7 @@
             btnPrivate.TextAlign = ContentAlignment.MiddleLeft;
             btnPrivate.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnPrivate.UseVisualStyleBackColor = false;
+            btnPrivate.Click += btnPrivate_Click;
             // 
             // btnHome
             // 
@@ -157,6 +180,7 @@
             btnHome.TextAlign = ContentAlignment.MiddleLeft;
             btnHome.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnHome.UseVisualStyleBackColor = false;
+            btnHome.Click += btnHome_Click;
             // 
             // pictureBox1
             // 
@@ -173,7 +197,7 @@
             lblTittleHome.AutoSize = true;
             lblTittleHome.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblTittleHome.ForeColor = Color.FromArgb(0, 119, 255);
-            lblTittleHome.Location = new Point(661, 89);
+            lblTittleHome.Location = new Point(415, 9);
             lblTittleHome.Name = "lblTittleHome";
             lblTittleHome.Size = new Size(416, 48);
             lblTittleHome.TabIndex = 8;
@@ -184,30 +208,19 @@
             lblText1.AutoSize = true;
             lblText1.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             lblText1.ForeColor = SystemColors.ControlDarkDark;
-            lblText1.Location = new Point(673, 143);
+            lblText1.Location = new Point(867, 28);
             lblText1.Name = "lblText1";
             lblText1.Size = new Size(342, 25);
             lblText1.TabIndex = 9;
             lblText1.Text = "Gestiona les teves instal·lacions esportives";
             // 
-            // panel2
+            // pnlContent
             // 
-            panel2.BackColor = Color.FromArgb(247, 249, 251);
-            panel2.Controls.Add(lblText2);
-            panel2.Location = new Point(415, 199);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(869, 424);
-            panel2.TabIndex = 10;
-            // 
-            // lblText2
-            // 
-            lblText2.AutoSize = true;
-            lblText2.Font = new Font("Segoe UI Semibold", 16F);
-            lblText2.Location = new Point(21, 17);
-            lblText2.Name = "lblText2";
-            lblText2.Size = new Size(303, 45);
-            lblText2.TabIndex = 0;
-            lblText2.Text = "Resum de les Pistes";
+            pnlContent.BackColor = Color.FromArgb(247, 249, 251);
+            pnlContent.Location = new Point(415, 89);
+            pnlContent.Name = "pnlContent";
+            pnlContent.Size = new Size(1120, 724);
+            pnlContent.TabIndex = 10;
             // 
             // btnPrivate2
             // 
@@ -217,7 +230,7 @@
             btnPrivate2.FlatStyle = FlatStyle.Flat;
             btnPrivate2.Font = new Font("Segoe UI Semibold", 9F);
             btnPrivate2.ForeColor = Color.White;
-            btnPrivate2.Location = new Point(1102, 675);
+            btnPrivate2.Location = new Point(1353, 841);
             btnPrivate2.Name = "btnPrivate2";
             btnPrivate2.Size = new Size(182, 40);
             btnPrivate2.TabIndex = 11;
@@ -232,7 +245,7 @@
             btnNewBook.FlatStyle = FlatStyle.Flat;
             btnNewBook.Font = new Font("Segoe UI Semibold", 9F);
             btnNewBook.ForeColor = Color.White;
-            btnNewBook.Location = new Point(895, 675);
+            btnNewBook.Location = new Point(1146, 841);
             btnNewBook.Name = "btnNewBook";
             btnNewBook.Size = new Size(182, 40);
             btnNewBook.TabIndex = 12;
@@ -244,21 +257,21 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(237, 242, 247);
-            ClientSize = new Size(1336, 793);
+            ClientSize = new Size(1556, 911);
             Controls.Add(btnNewBook);
             Controls.Add(btnPrivate2);
-            Controls.Add(panel2);
+            Controls.Add(pnlContent);
             Controls.Add(lblText1);
             Controls.Add(lblTittleHome);
             Controls.Add(panel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "AdminForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "SportSpot";
             FormClosed += AdminForm_FormClosed;
+            Load += AdminForm_Load;
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            panel2.ResumeLayout(false);
-            panel2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -274,9 +287,9 @@
         private Button btnHome;
         private Label lblTittleHome;
         private Label lblText1;
-        private Panel panel2;
-        private Label lblText2;
+        private Panel pnlContent;
         private Button btnPrivate2;
         private Button btnNewBook;
+        private Button btnUsers;
     }
 }

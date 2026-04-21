@@ -126,7 +126,7 @@ namespace SportSpot
         /// <param name="e"></param>
         private void txtPassword_Leave(object sender, EventArgs e)
         {
-            if(txtPassword.TextLength < 4)
+            if (txtPassword.TextLength < 4)
             {
                 if (txtPassword.Text == "")
                 {
@@ -140,7 +140,7 @@ namespace SportSpot
             else
             {
                 lblErrorPassword.Text = "";
-            }            
+            }
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace SportSpot
         /// <param name="e"></param>
         private void txtUser_TextChanged(object sender, EventArgs e)
         {
-            lblErrorUser.Text = "";            
+            lblErrorUser.Text = "";
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace SportSpot
         /// <param name="e"></param>
         private void txtPassword_TextChanged(object sender, EventArgs e)
         {
-            lblErrorPassword.Text = "";            
+            lblErrorPassword.Text = "";
         }
 
         /// <summary>
@@ -195,5 +195,27 @@ namespace SportSpot
         {
             Application.Exit();
         }
+
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode per obrir el formulari de registre. Quan l'usuari fa clic al link de registre, es tanca el formulari de login 
+        /// i s'obre el formulari de registre com a modal. Quan es tanca el formulari de registre, es torna a mostrar el formulari
+        /// de login i s'esborren els missatges d'error relacionats amb l'usuari.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void linkRegister_Click(object sender, EventArgs e)
+        {       
+            this.Hide(); // Amaga el login
+
+            using (var frm = new RegisterForm())
+            {
+                frm.ShowDialog(); // Obre el registre com a modal
+            }
+
+            this.Show(); // Torna a mostrar el login quan es tanca el registre
+            lblErrorUser.Text = "";
+        }
+
     }
 }

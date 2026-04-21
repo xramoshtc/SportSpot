@@ -29,8 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ClientForm));
-            panel2 = new Panel();
-            lblText2 = new Label();
+            pnlContent = new Panel();
             lblText1 = new Label();
             lblTittleHome = new Label();
             panel1 = new Panel();
@@ -41,36 +40,24 @@
             btnLogout = new Button();
             btnNewBook = new Button();
             btnPrivate2 = new Button();
-            panel2.SuspendLayout();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
-            // panel2
+            // pnlContent
             // 
-            panel2.BackColor = Color.FromArgb(247, 249, 251);
-            panel2.Controls.Add(lblText2);
-            panel2.Location = new Point(422, 165);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(869, 424);
-            panel2.TabIndex = 13;
-            // 
-            // lblText2
-            // 
-            lblText2.AutoSize = true;
-            lblText2.Font = new Font("Segoe UI Semibold", 16F);
-            lblText2.Location = new Point(21, 17);
-            lblText2.Name = "lblText2";
-            lblText2.Size = new Size(281, 45);
-            lblText2.TabIndex = 0;
-            lblText2.Text = "Les teves reserves";
+            pnlContent.BackColor = Color.FromArgb(247, 249, 251);
+            pnlContent.Location = new Point(415, 89);
+            pnlContent.Name = "pnlContent";
+            pnlContent.Size = new Size(1120, 724);
+            pnlContent.TabIndex = 13;
             // 
             // lblText1
             // 
             lblText1.AutoSize = true;
             lblText1.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             lblText1.ForeColor = SystemColors.ControlDarkDark;
-            lblText1.Location = new Point(680, 109);
+            lblText1.Location = new Point(867, 28);
             lblText1.Name = "lblText1";
             lblText1.Size = new Size(174, 25);
             lblText1.TabIndex = 12;
@@ -81,7 +68,7 @@
             lblTittleHome.AutoSize = true;
             lblTittleHome.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblTittleHome.ForeColor = Color.FromArgb(0, 119, 255);
-            lblTittleHome.Location = new Point(668, 55);
+            lblTittleHome.Location = new Point(415, 9);
             lblTittleHome.Name = "lblTittleHome";
             lblTittleHome.Size = new Size(416, 48);
             lblTittleHome.TabIndex = 11;
@@ -98,7 +85,7 @@
             panel1.Controls.Add(btnLogout);
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(357, 795);
+            panel1.Size = new Size(357, 950);
             panel1.TabIndex = 14;
             // 
             // btnBook
@@ -119,6 +106,7 @@
             btnBook.TextAlign = ContentAlignment.MiddleLeft;
             btnBook.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnBook.UseVisualStyleBackColor = false;
+            btnBook.Click += btnBook_Click;
             // 
             // btnPrivate
             // 
@@ -138,6 +126,7 @@
             btnPrivate.TextAlign = ContentAlignment.MiddleLeft;
             btnPrivate.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnPrivate.UseVisualStyleBackColor = false;
+            btnPrivate.Click += btnPrivate_Click;
             // 
             // btnHome
             // 
@@ -157,6 +146,7 @@
             btnHome.TextAlign = ContentAlignment.MiddleLeft;
             btnHome.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnHome.UseVisualStyleBackColor = false;
+            btnHome.Click += btnHome_Click;
             // 
             // pictureBox1
             // 
@@ -196,7 +186,7 @@
             btnNewBook.FlatStyle = FlatStyle.Flat;
             btnNewBook.Font = new Font("Segoe UI Semibold", 9F);
             btnNewBook.ForeColor = Color.White;
-            btnNewBook.Location = new Point(902, 643);
+            btnNewBook.Location = new Point(1146, 841);
             btnNewBook.Name = "btnNewBook";
             btnNewBook.Size = new Size(182, 40);
             btnNewBook.TabIndex = 16;
@@ -211,7 +201,7 @@
             btnPrivate2.FlatStyle = FlatStyle.Flat;
             btnPrivate2.Font = new Font("Segoe UI Semibold", 9F);
             btnPrivate2.ForeColor = Color.White;
-            btnPrivate2.Location = new Point(1109, 643);
+            btnPrivate2.Location = new Point(1353, 841);
             btnPrivate2.Name = "btnPrivate2";
             btnPrivate2.Size = new Size(182, 40);
             btnPrivate2.TabIndex = 15;
@@ -223,19 +213,19 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(237, 242, 247);
-            ClientSize = new Size(1454, 756);
+            ClientSize = new Size(1556, 911);
             Controls.Add(btnNewBook);
             Controls.Add(btnPrivate2);
             Controls.Add(panel1);
-            Controls.Add(panel2);
+            Controls.Add(pnlContent);
             Controls.Add(lblText1);
             Controls.Add(lblTittleHome);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "ClientForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "SportSpot";
             FormClosed += ClientForm_FormClosed;
-            panel2.ResumeLayout(false);
-            panel2.PerformLayout();
+            Load += ClientForm_Load;
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
@@ -243,8 +233,7 @@
         }
 
         #endregion
-        private Panel panel2;
-        private Label lblText2;
+        private Panel pnlContent;
         private Label lblText1;
         private Label lblTittleHome;
         private Panel panel1;

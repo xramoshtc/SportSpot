@@ -7,6 +7,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\mique\Documents\IOC\M13\TEA3\per entregar\SportSpot.xml</DocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="NewAdminForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
 
 </Project>

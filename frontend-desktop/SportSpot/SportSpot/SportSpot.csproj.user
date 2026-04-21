@@ -7,8 +7,29 @@
     <Compile Update="ClientForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Controls\UCGestCourts.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCHomeAdmin.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCHomeClient.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCPrivate.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCReserves.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="LoginForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="RegisterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Controls\UCUsuaris.cs">
+      <SubType>UserControl</SubType>
     </Compile>
   </ItemGroup>
 </Project>

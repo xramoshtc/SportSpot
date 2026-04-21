@@ -1,4 +1,5 @@
-﻿using SportSpot.Models;
+﻿using SportSpot.Controls;
+using SportSpot.Models;
 using SportSpot.Services;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace SportSpot
         /// <param name="e"></param>
         private async void ClientForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if(Session.sessionToken != null)
+            if (Session.sessionToken != null)
             {
                 try
                 {
@@ -75,6 +76,69 @@ namespace SportSpot
         {
             // Amb això ja cridarem ClientForm_FormClosed per netejar Session i obrir el LoginForm (main)
             this.Close();
+        }
+
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que es crida quan es fa clic al botó de perfil privat. Crea una nova instància del control d'usuari UCPrivate, 
+        /// el configura per omplir tot l'espai disponible al panell de contingut, i després el mostra dins d'aquest panell. 
+        /// </summary>
+        /// <param name="sender">L'objecte que va generar l'esdeveniment</param>
+        /// <param name="e">Les dades de l'esdeveniment</param>
+        private void btnPrivate_Click(object sender, EventArgs e)
+        {
+            var uc = new UCPrivate();
+            uc.Dock = DockStyle.Fill;
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
+        }
+
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que es crida quan es fa clic al botó d'inici. Crea una nova instància del control d'usuari 
+        /// UCHomeClient, el configura per omplir tot l'espai disponible al panell de contingut, i després el 
+        /// mostra dins d'aquest panell.
+        /// </summary>
+        /// <param name="sender">L'objecte que va generar l'esdeveniment</param>
+        /// <param name="e">Les dades de l'esdeveniment</param>
+        private void btnHome_Click(object sender, EventArgs e)
+        {
+            var uc = new UCHomeClient();
+            uc.Dock = DockStyle.Fill;
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
+        }
+
+        /// <summary>
+        /// Autor: Mquel Uribe Faixedas
+        /// Mètode que es crida quan es fa clic al botó de reserves. Crea una nova instància del control d'usuari 
+        /// UCReserves, el configura per omplir tot l'espai disponible al panell de contingut, i després el mostra
+        /// dins d'aquest panell. Aquest control probablement mostra les reserves que el client ha fet o pot fer, 
+        /// permetent-li gestionar-les des d'aquí.
+        /// </summary>
+        /// <param name="sender">L'objecte que va generar l'esdeveniment</param>
+        /// <param name="e">Les dades de l'esdeveniment</param>
+        private void btnBook_Click(object sender, EventArgs e)
+        {
+            var uc = new UCReserves();
+            uc.Dock = DockStyle.Fill;
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
+        }
+
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que es crida quan es carrega el formulari de client. Per defecte, quan el client obre el 
+        /// formulari, es mostra el control d'usuari UCHomeClient al panell de contingut. Això probablement 
+        /// serveix com a pàgina d'inici o dashboard per al client, on pot veure informació rellevant o accedir
+        /// a diferents funcionalitats des d'allà.
+        /// </summary>
+        /// <param name="sender">L'objecte que va generar l'esdeveniment</param>
+        /// <param name="e">Les dades de l'esdeveniment</param>
+        private void ClientForm_Load(object sender, EventArgs e)
+        {
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(new UCHomeClient() { Dock = DockStyle.Fill });
         }
     }
 }
