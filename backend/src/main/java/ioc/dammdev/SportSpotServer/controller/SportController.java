@@ -199,6 +199,7 @@ public class SportController {
         dto.setType(court.getType());
         dto.setLocation(court.getLocation());
         dto.setPricePerHour(court.getPricePerHour());
+        dto.setCapacity(court.getCapacity());
         return dto;
     }
 

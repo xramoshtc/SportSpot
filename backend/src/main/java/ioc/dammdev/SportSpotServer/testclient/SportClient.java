@@ -163,7 +163,7 @@ public class SportClient {
         System.out.println("\n2. Llistat de pistes disponibles:");
         List<CourtDTO> courts = client.getCourts();
         if (courts != null) {
-            courts.forEach(c -> System.out.println(" - [" + c.getId() + "] " + c.getName() + " (" + c.getType() +"  , Ciutat:  " + c.getLocation()+")"));
+            courts.forEach(c -> System.out.println(" - [" + c.getId() + "] " + c.getName() + " (" + c.getType() +"  , Ciutat:  " + c.getLocation()+"), capacitat: "+ c.getCapacity()) );
         }
 
         // 3. CREAR RESERVA
