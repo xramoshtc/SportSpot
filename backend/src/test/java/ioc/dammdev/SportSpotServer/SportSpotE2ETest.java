@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  * Proves d'extrem a extrem (E2E) per a tot el sistema SportSpot.
@@ -48,6 +49,10 @@ public class SportSpotE2ETest {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     private String adminToken;
     private String userToken;
@@ -64,14 +69,14 @@ public class SportSpotE2ETest {
         userService.clearSessions();
 
         // 1. Creem un admin real
-        User admin = new User(null, "AdminGess", "1234", "admin@test.com", "ADMIN", true);
+        User admin = new User(null, "AdminGess", passwordEncoder.encode("1234"), "admin@test.com", "ADMIN", true);
         userRepository.save(admin);
-        adminToken = userService.createSession(Optional.of(admin), "1234");
+        adminToken = userService.createSession(Optional.of(admin));
 
         // 2. Creem un usuari real
-        User user = new User(null, "UserGess", "1234", "user@test.com", "USER", true);
+        User user = new User(null, "UserGess", passwordEncoder.encode("1234"), "user@test.com", "USER", true);
         userRepository.save(user);
-        userToken = userService.createSession(Optional.of(user), "1234");
+        userToken = userService.createSession(Optional.of(user));
     }
 
     // --- TESTS D'USUARI ADMIN  ---

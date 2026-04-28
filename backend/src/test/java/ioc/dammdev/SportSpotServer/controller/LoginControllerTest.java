@@ -38,6 +38,8 @@ class LoginControllerTest {
     
     @Autowired
     private UserService userService;
+    
+   
 
     /**
      * Verifica que el context de l'aplicació s'arrenca correctament.
@@ -50,6 +52,7 @@ class LoginControllerTest {
     @BeforeEach
     public void cleanup(){
         userService.clearSessions();
+        System.out.println("Usuaris a la BD: " + userRepository.count()); // <--- AFEGEIX AIXÒ
     }
 
     /**

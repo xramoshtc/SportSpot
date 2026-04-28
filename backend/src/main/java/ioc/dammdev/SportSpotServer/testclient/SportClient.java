@@ -22,8 +22,11 @@ import java.util.Map;
 
 public class SportClient {
      
-//  String baseUrl = "https://localhost:";
-  String baseUrl = "http://10.2.3.145:";
+
+
+ //String baseUrl = "https://localhost:";
+  String baseUrl = "https://10.2.3.145:";
+
 
 
     private  RestTemplate restTemplate = new RestTemplate();
@@ -145,7 +148,7 @@ public class SportClient {
      * Exemple d'execució del flux complet.
      */
     public static void main(String[] args) {
-        SportClient client = new SportClient("8080");
+        SportClient client = new SportClient("8443");
         
         System.out.println("=== INICIANT FLUX DE PROVA E2E ===");
 

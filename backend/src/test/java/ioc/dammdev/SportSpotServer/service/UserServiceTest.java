@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -29,11 +30,15 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserService userService;
 
     private User testUser;
+    
 
     @BeforeEach
     void setUp() {
@@ -50,8 +55,11 @@ public class UserServiceTest {
     @Test
     void whenLoginSuccessful_thenReturnsUser() {
         when(userRepository.findByName("Gess")).thenReturn(Optional.of(testUser));
+        
+        
+        when(passwordEncoder.matches("password123", testUser.getPassword())).thenReturn(true);
 
-        Optional<User> result = userService.login("Gess");
+        Optional<User> result = userService.login("Gess","password123");
 
         assertThat(result).isPresent();
         assertThat(result.get().getName()).isEqualTo("Gess");
@@ -64,10 +72,10 @@ public class UserServiceTest {
     void whenUserAlreadyLogged_thenLoginFails() {
         when(userRepository.findByName("Gess")).thenReturn(Optional.of(testUser));
         // Creem una sessió prèvia
-        userService.createSession(Optional.of(testUser), "password123");
+        userService.createSession(Optional.of(testUser));
 
         // Intentem tornar a fer login
-        Optional<User> result = userService.login("Gess");
+        Optional<User> result = userService.login("Gess","password123");
 
         assertThat(result).isEmpty();
     }
@@ -77,7 +85,7 @@ public class UserServiceTest {
      */
     @Test
     void whenCorrectCredentials_thenCreateSessionReturnsToken() {
-        String token = userService.createSession(Optional.of(testUser), "password123");
+        String token = userService.createSession(Optional.of(testUser));
 
         assertThat(token).isNotNull();
         assertThat(token.length()).isEqualTo(8);
@@ -90,7 +98,7 @@ public class UserServiceTest {
     @Test
     void whenUserIsAdmin_thenIsAdminReturnsTrue() {
         User admin = new User(2L, "adminUser", "admin123", "admin@test.com", "ADMIN",true);
-        String token = userService.createSession(Optional.of(admin), "admin123");
+        String token = userService.createSession(Optional.of(admin));
         
         when(userRepository.findByName("adminUser")).thenReturn(Optional.of(admin));
 

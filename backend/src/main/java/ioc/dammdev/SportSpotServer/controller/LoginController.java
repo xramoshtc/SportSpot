@@ -41,9 +41,9 @@ public class LoginController {
                peticio.getPassword() == null || peticio.getPassword().length() > 20)
             return new LoginResponse(false, "Login Error: Format de camps no vàlid",-1,"","");
         
-        // 2. Validem credencials
-        Optional<User> userLogin = userService.login(peticio.getUser());
-        String token = userService.createSession(userLogin, peticio.getPassword());
+        // 2. Validem credencials. 
+        Optional<User> userLogin = userService.login(peticio.getUser(),peticio.getPassword());
+        String token = userService.createSession(userLogin);
         if (token != null)           
             return  new LoginResponse(true,"Login realitzat correctament",200,token,userLogin.get().getRole());
         else
