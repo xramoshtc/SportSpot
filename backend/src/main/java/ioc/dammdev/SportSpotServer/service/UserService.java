@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Capa de servei per gestionar la lògica de negoci dels usuaris.
@@ -19,29 +20,44 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
       // Guardarem en memòria l'usuari i token de sessió
     // Clau: Token (String) | Valor: Nom d'usuari (String)
     private static final java.util.Map<String, String> sessionsActives = new java.util.HashMap<>();
     
-
+    /**
+     * Valida les credencials comparant el text pla amb el hash de la BD.
+     * @param plainPassword contrasenya en text pla
+     * @param hashedPassword hash contrasenya en BD
+     * @return boolean resultat de comparació dels hashs de contrasenyes
+     * @author Gess Montalbán
+     */
+    public boolean authenticate(String plainPassword, String hashedPassword) {
+       
+   
+    return passwordEncoder.matches(plainPassword, hashedPassword);
+   
+}
     /**
      * Gestiona el procés de login. 
      * @param username: nom d'usuari
+     * @param password contrasenya introduïda per l'usuari
      * @return LoginResponse: respossta que s'envia al client
      * @author Gess Montalbán
      */
-    public Optional<User> login(String username) {
+    public Optional<User> login(String username, String password) {
         Optional<User> user = userRepository.findByName(username);
+       
+        if (!user.isPresent())
+          return Optional.empty();
         
-          User userBD = user.get();
-          
-        // Comprovem que no hi ha una sessió activa
-        if (!isLogged(userBD.getName()))  { 
-            
-                return user;
-        } else 
-               return Optional.empty();
+        User userBD = user.get();
+        if (authenticate(password, userBD.getPassword()) && !isLogged(userBD.getName()))              
+            return user;
+        
+        return Optional.empty();
             
     }
       /**
@@ -64,15 +80,14 @@ public class UserService {
      * Genera un token únic i l'associa al nom d'usuari en memòria.
      *
      * @param user Optional amb l'usuari trobat a la base de dades
-     * @param password contrasenya introduïda per l'usuari
      * @return token de sessió si l'autenticació és correcta, null si falla
      * @author Gess Montalbán
      */
     
-    public String createSession(Optional<User> user, String password){
+    public String createSession(Optional<User> user){
         
         // Comprovem si l'usuari existeix i si la contrasenya coincideix
-        if (user.isPresent() && user.get().getPassword().equals(password)) {
+        if (user.isPresent()) {
             String token = UUID.randomUUID().toString().substring(0, 8);
             sessionsActives.put(token, user.get().getName());
             return token;
@@ -181,6 +196,7 @@ public class UserService {
         if (existingUser.isPresent()) 
             return null;
         String role = newUser.getRole();
+        String encodedPassword = passwordEncoder.encode(newUser.getPassword());
          if (role == null || role.trim().isEmpty()){
              newUser.setRole("USER"); //Usuari per defecte
          } else {
@@ -188,6 +204,8 @@ public class UserService {
              if (!role.equals("ADMIN") && !role.equals("USER") && !role.equals("CLIENT"))
                  return null;
              newUser.setRole(role);
+             newUser.setPassword(encodedPassword);
+             
          }         
         return userRepository.save(newUser);
     }
@@ -276,7 +294,7 @@ public class UserService {
         if(userUpdates.getName() != null)
             existingUser.setName(userUpdates.getName());
         if(userUpdates.getPassword() != null)
-            existingUser.setPassword(userUpdates.getPassword());
+            existingUser.setPassword(passwordEncoder.encode(userUpdates.getPassword()));
         if(userUpdates.getEmail() != null)
             existingUser.setEmail(userUpdates.getEmail());
         if(userUpdates.getRole() != null)

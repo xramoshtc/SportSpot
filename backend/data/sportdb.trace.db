@@ -1,0 +1,12 @@
+2026-04-28 19:46:23.221600+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Valor demasiado largo para la columna "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"
+Value too long for column "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"; SQL statement:
+MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'marta@test.com', 'marta', '$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m', 'USER') [22001-232]
+2026-04-28 19:47:21.210674+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Valor demasiado largo para la columna "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"
+Value too long for column "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"; SQL statement:
+MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'marta@test.com', 'marta', '$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m', 'USER') [22001-232]
+2026-04-28 19:47:59.026252+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Valor demasiado largo para la columna "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"
+Value too long for column "PASSWORD CHARACTER VARYING(60)": "'$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m' (61)"; SQL statement:
+MERGE INTO usuaris (active, email, name, password, role) KEY(name) VALUES (true, 'marta@test.com', 'marta', '$2a$10$Xm5A8O7Y6R5T4E3W2Q1P0O.uM8mO9mO9mO9mO9mO9mO9mO9mO9mO9m', 'USER') [22001-232]

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -33,6 +34,10 @@ public class UserE2ETest {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     private UserClient userClient;
     private String adminToken;
@@ -45,11 +50,11 @@ public class UserE2ETest {
         userService.clearSessions();
 
         // 1. Creem un admin real a la BD
-        User admin = new User( "adminReal", "1234", "admin@test.com", "ADMIN");
+        User admin = new User( "adminReal", passwordEncoder.encode("1234"), "admin@test.com", "ADMIN");
         userRepository.save(admin);
 
         // 2. Generem una sessió real per a l'admin
-        adminToken = userService.createSession(Optional.of(admin), "1234");
+        adminToken = userService.createSession(Optional.of(admin));
     }
 
     /**
