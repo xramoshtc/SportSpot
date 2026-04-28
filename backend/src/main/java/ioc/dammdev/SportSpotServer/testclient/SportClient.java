@@ -22,8 +22,8 @@ import java.util.Map;
 
 public class SportClient {
      
-  String baseUrl = "http://localhost:";
- //String baseUrl = "http://10.2.3.145:";
+//  String baseUrl = "https://localhost:";
+  String baseUrl = "http://10.2.3.145:";
 
 
     private  RestTemplate restTemplate = new RestTemplate();
