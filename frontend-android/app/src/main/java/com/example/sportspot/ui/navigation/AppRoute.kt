@@ -36,4 +36,6 @@ sealed class AppRoute(val route: String) {
     object MyBookings : AppRoute("my-bookings")
     /** Ruta de la pantalla de gestió de pistes per a l'administrador. */
     object AdminCourts : AppRoute("admin-courts")
+    /** Ruta de la pantalla de gestió d'esdeveniments per a l'usuari. */
+    object Events : AppRoute("events")
 }

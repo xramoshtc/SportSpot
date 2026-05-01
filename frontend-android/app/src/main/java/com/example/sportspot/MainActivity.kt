@@ -30,6 +30,7 @@ import com.example.sportspot.ui.profile.ProfileScreen
 import com.example.sportspot.ui.register.RegisterScreen
 import com.example.sportspot.ui.session.SessionViewModel
 import com.example.sportspot.ui.theme.SportSpotTheme
+import com.example.sportspot.ui.events.EventsScreen
 
 /**
  * Activitat principal de l'aplicació.
@@ -141,6 +142,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToMyBookings = {
                                     navController.navigate(AppRoute.MyBookings.route)
+                                },
+                                onNavigateToEvents = {
+                                    navController.navigate(AppRoute.Events.route)
                                 }
                             )
                         }
@@ -201,6 +205,9 @@ class MainActivity : ComponentActivity() {
                             AdminCourtsScreen(
                                 onBack = { navController.popBackStack() }
                             )
+                        }
+                        composable(AppRoute.Events.route) {
+                            EventsScreen(onBack = { navController.popBackStack() })
                         }
                     }
                 }

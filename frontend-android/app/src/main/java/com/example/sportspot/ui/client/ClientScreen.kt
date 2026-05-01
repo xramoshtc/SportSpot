@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SportsTennis
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sportspot.domain.model.Booking
@@ -27,21 +29,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
-
+import androidx.compose.ui.graphics.Color
 
 /**
  * Pantalla principal per a l'usuari client.
  *
- * Mostra la propera reserva amb previsió del temps, botons d'accés
- * ràpid a les funcionalitats principals i el token de sessió.
+ * Mostra la propera reserva amb previsió del temps i botons d'accés
+ * ràpid a les funcionalitats principals: reservar pista, les meves reserves,
+ * esdeveniments i el meu perfil.
  *
- * @author Jesús Ramos
- *
- * @param viewModel ViewModel que proveeix l'estat i les accions del client.
  * @param onLogout Funció que s'executa quan el logout ha finalitzat.
  * @param onNavigateToProfile Funció per navegar al perfil.
  * @param onNavigateToCourts Funció per navegar al llistat de pistes.
  * @param onNavigateToMyBookings Funció per navegar a les reserves.
+ * @param onNavigateToEvents Funció per navegar als esdeveniments.
+ * @param viewModel ViewModel que proveeix l'estat i les accions del client.
+ *
+ * @author Jesús Ramos
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("ContextCastToActivity")
@@ -53,7 +57,8 @@ fun ClientScreen(
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToCourts: () -> Unit,
-    onNavigateToMyBookings: () -> Unit
+    onNavigateToMyBookings: () -> Unit,
+    onNavigateToEvents: () -> Unit
 ) {
     val token by viewModel.token.collectAsState()
     val nextBooking by viewModel.nextBooking.collectAsState()
@@ -73,6 +78,8 @@ fun ClientScreen(
             .padding(horizontal = 20.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        //Capçalera: salutació + avatar
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -80,7 +87,7 @@ fun ClientScreen(
         ) {
             Column {
                 Text(
-                    text = "Hola!👋 $username",
+                    text = "Hola! 👋 $username",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -103,7 +110,8 @@ fun ClientScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        // Targeta de propera reserva
+
+        //Targeta de propera reserva
         NextBookingCard(
             booking = nextBooking,
             weather = nextBookingWeather
@@ -111,164 +119,111 @@ fun ClientScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Primera fila de botons: Reservar pista + Les meves reserves
+        //Primera fila: Reservar pista + Les meves reserves
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Botó Reservar pista
-            Card(
-                onClick = { onNavigateToCourts() },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                elevation = CardDefaults.cardElevation(6.dp),
-                shape = MaterialTheme.shapes.medium
+            DashboardCard(
+                onClick = onNavigateToCourts,
+                modifier = Modifier.weight(1f),
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SportsTennis,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Reservar\npista",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.SportsTennis,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Reservar pista",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    textAlign = TextAlign.Center
+                )
             }
 
-            // Botó Les meves reserves
-            Card(
-                onClick = { onNavigateToMyBookings() },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                ),
-                elevation = CardDefaults.cardElevation(6.dp),
-                shape = MaterialTheme.shapes.medium
+            //Botó Les meves reserves
+            DashboardCard(
+                onClick = onNavigateToMyBookings,
+                modifier = Modifier.weight(1f),
+                containerColor = MaterialTheme.colorScheme.secondary
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CalendarMonth,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Les meves\nreserves",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Les meves reserves",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Segona fila de botons: El meu perfil + Tancar sessió
+        //Segona fila: Esdeveniments + El meu perfil
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Botó El meu perfil
-            Card(
-                onClick = { onNavigateToProfile() },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(4.dp),
-                shape = MaterialTheme.shapes.medium
+            //Botó Esdeveniments
+            DashboardCard(
+                onClick = onNavigateToEvents,
+                modifier = Modifier.weight(1f),
+                containerColor = Color(0xFF81C784)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "El meu\nperfil",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.EmojiEvents,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiary,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Esdeveniments",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    textAlign = TextAlign.Center
+                )
             }
 
-            // Botó Tancar sessió
-            Card(
-                onClick = {
-                    coroutineScope.launch {
-                        viewModel.logout()
-                        onLogout()
-                    }
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(4.dp),
-                shape = MaterialTheme.shapes.medium
+            //Botó El meu perfil
+            DashboardCard(
+                onClick = onNavigateToProfile,
+                modifier = Modifier.weight(1f),
+                containerColor = Color(0xFFFFE082)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Tancar\nsessió",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color(0xFF795548) ,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "El meu perfil",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF795548),
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Token de sessió (útil per a proves)
+        //Token de sessió
         Text(
             text = "Token",
             style = MaterialTheme.typography.labelLarge,
@@ -283,7 +238,34 @@ fun ClientScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Botó Sortir
+        //Botó Tancar sessió
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    viewModel.logout()
+                    onLogout()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Tancar sessió", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        //Botó Sortir
         Button(
             onClick = { activity?.finish() },
             modifier = Modifier
@@ -299,15 +281,51 @@ fun ClientScreen(
     }
 }
 
+
+// DashboardCard — component reutilitzable per als botons de la graella
 /**
- * Targeta que mostra la propera reserva de l'usuari amb previsió del temps.
+ * Targeta quadrada reutilitzable per als botons del dashboard del client.
  *
- * Si no hi ha cap reserva futura, mostra un missatge informatiu.
+ *
+ * @param onClick Acció en prémer la targeta.
+ * @param modifier Modifier addicional (normalment weight).
+ * @param containerColor Color de fons de la targeta.
+ * @param content Contingut interior (icona + text).
  *
  * @author Jesús Ramos
+ */
+@Composable
+fun DashboardCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: androidx.compose.ui.graphics.Color,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.aspectRatio(1f),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(6.dp),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            content = content
+        )
+    }
+}
+
+// NextBookingCard - Targeta de propera reserva
+/**
+ * Targeta que mostra la propera reserva de l'usuari amb previsió del temps.
+ * Si no hi ha cap reserva futura, mostra un missatge informatiu.
  *
  * @param booking Propera reserva de l'usuari, o null si no n'hi ha.
  * @param weather Previsió meteorològica de la reserva, o null si no disponible.
+ *
+ * @author Jesús Ramos
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

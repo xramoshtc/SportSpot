@@ -222,6 +222,62 @@ data class BookingResponse(
     val location: String
 )
 
+/**
+ * Cos de la petició per crear un nou esdeveniment.
+ *
+ * @property title Títol de l'esdeveniment.
+ * @property courtId Identificador de la pista on es realitzarà.
+ * @property dateTime Data i hora en format ISO-8601 (ex: "2026-05-10T10:00:00").
+ *
+ * @author Jesús Ramos
+ */
+data class CreateEventRequest(
+    val title: String,
+    val courtId: Long,
+    val dateTime: String
+)
+
+/**
+ * Cos de la petició per modificar un esdeveniment existent.
+ *
+ * Els camps null no es modifiquen al servidor.
+ *
+ * @property title Nou títol de l'esdeveniment, o null per no modificar.
+ * @property courtId Nou ID de pista, o null per no modificar.
+ * @property dateTime Nova data i hora, o null per no modificar.
+ *
+ * @author Jesús Ramos
+ */
+data class UpdateEventRequest(
+    val title: String? = null,
+    val courtId: Long? = null,
+    val dateTime: String? = null
+)
+/**
+ * Resposta del servidor que representa un esdeveniment.
+ *
+ * @property id Identificador únic de l'esdeveniment.
+ * @property title Títol de l'esdeveniment.
+ * @property courtName Nom de la pista on es realitza.
+ * @property organizerName Nom de l'usuari organitzador.
+ * @property dateTime Data i hora de l'esdeveniment.
+ * @property currentParticipants Nombre actual de participants.
+ * @property maxCapacity Capacitat màxima de la pista.
+ * @property participantNames Llista de noms dels participants inscrits.
+ *
+ * @author Jesús Ramos
+ */
+data class EventResponse(
+    val id: Long,
+    val title: String,
+    val courtName: String,
+    val organizerName: String,
+    val dateTime: String,
+    val currentParticipants: Int,
+    val maxCapacity: Int,
+    val participantNames: List<String>
+)
+
 
 /**
  * Interfície Retrofit per les crides d'autenticació.
@@ -422,5 +478,84 @@ interface AuthApi {
         @Path("id") id: Long,
         @Header("Session-Token") token: String
     ): Response<Unit>
+
+    /**
+     * Crida GET que obté la llista de tots els esdeveniments actius.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió de l'usuari autenticat.
+     * @return Llista d'[EventResponse].
+     */
+    @GET("api/events")
+    suspend fun getEvents(
+        @Header("Session-Token") token: String
+    ): List<EventResponse>
+
+    /**
+     * Crida POST que crea un nou esdeveniment.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió de l'usuari autenticat.
+     * @param body Dades del nou esdeveniment.
+     * @return [EventResponse] amb l'esdeveniment creat.
+     */
+    @POST("api/events")
+    suspend fun createEvent(
+        @Header("Session-Token") token: String,
+        @Body body: CreateEventRequest
+    ): EventResponse
+
+    /**
+     * Crida PUT que modifica un esdeveniment existent.
+     *
+     * @author Jesús Ramos
+     *
+     * Només l'organitzador o un admin pot modificar l'esdeveniment.
+     *
+     * @param token Token de sessió.
+     * @param id Identificador de l'esdeveniment a modificar.
+     * @param body Camps a actualitzar (els null no es modifiquen).
+     * @return [EventResponse] amb les dades actualitzades.
+     */
+    @PUT("api/events/{id}")
+    suspend fun updateEvent(
+        @Header("Session-Token") token: String,
+        @Path("id") id: Long,
+        @Body body: UpdateEventRequest
+    ): EventResponse
+
+    /**
+     * Crida POST que apunta a un esdeveniment existent.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió de l'usuari que es vol inscriure.
+     * @param id Identificador de l'esdeveniment.
+     */
+    @POST("api/events/{id}/join")
+    suspend fun joinEvent(
+        @Header("Session-Token") token: String,
+        @Path("id") id: Long
+    )
+
+    /**
+     * Crida DELETE que elimina un esdeveniment o abandona'l.
+     *
+     * @author Jesús Ramos
+     *
+     * Si l'usuari és l'organitzador o admin, elimina l'esdeveniment.
+     * Si és un participant, l'abandona.
+     *
+     * @param token Token de sessió.
+     * @param id Identificador de l'esdeveniment.
+     */
+    @DELETE("api/events/{id}")
+    suspend fun deleteOrLeaveEvent(
+        @Header("Session-Token") token: String,
+        @Path("id") id: Long
+    ): Response<Unit>
+
 }
 
