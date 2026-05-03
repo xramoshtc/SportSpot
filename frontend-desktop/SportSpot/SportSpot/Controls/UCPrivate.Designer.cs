@@ -81,6 +81,7 @@
             txtNom.BackColor = SystemColors.InactiveBorder;
             txtNom.Enabled = false;
             txtNom.Location = new Point(183, 70);
+            txtNom.MaxLength = 10;
             txtNom.Name = "txtNom";
             txtNom.ReadOnly = true;
             txtNom.Size = new Size(414, 31);

@@ -26,8 +26,7 @@ namespace SportSpot.Services
         
         public AuthService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("http://10.2.3.145:8080/");
+            _httpClient = Session.Client;            
         }
 
         /// <summary>

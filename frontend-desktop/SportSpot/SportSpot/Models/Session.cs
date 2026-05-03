@@ -18,5 +18,10 @@ namespace SportSpot.Models
         public static string role { get; set; }
         public static string user { get; set; }
         public static string email { get; set; }
+
+        public static HttpClient Client { get; } = new HttpClient
+        {
+            BaseAddress = new Uri("https://10.2.3.145:8443/")
+        };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic.ApplicationServices;
 using SportSpot.Models;
+using SportSpot.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,6 +24,7 @@ namespace SportSpot
     /// </summary>
     public partial class UCUsuaris : UserControl
     {
+        private readonly UserService _userService = new UserService();
         public UCUsuaris()
         {
             InitializeComponent();
@@ -40,26 +42,8 @@ namespace SportSpot
         {
             try
             {
-                using (var client = new HttpClient())
-                {
-                    // Afegim el token a la capçalera
-                    client.DefaultRequestHeaders.Add("Session-Token", Session.sessionToken);
-
-                    var resposta = await client.GetAsync("http://10.2.3.145:8080/api/users");
-
-                    if (resposta.IsSuccessStatusCode)
-                    {
-                        var json = await resposta.Content.ReadAsStringAsync();
-
-                        var usuaris = JsonSerializer.Deserialize<List<Usuari>>(json);
-
-                        dataGridViewUsuaris.DataSource = usuaris;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error carregant usuaris: " + resposta.StatusCode);
-                    }
-                }
+                var usuaris = await _userService.GetUsers();
+                dataGridViewUsuaris.DataSource = usuaris;
             }
             catch (Exception ex)
             {

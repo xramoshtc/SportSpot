@@ -1,4 +1,5 @@
 ﻿using SportSpot.Models;
+using SportSpot.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,6 +27,9 @@ namespace SportSpot.Controls
             _ = CarregarPerfilAsync();
         }
 
+        
+        private readonly UserService _userService = new UserService();
+
         /// <summary>
         /// Autor: Miquel Uribe Faixedas
         /// Carrega les dades del perfil de l'usuari actual.
@@ -35,34 +39,19 @@ namespace SportSpot.Controls
         {
             try
             {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("Session-Token", Session.sessionToken);
+                var usuari = await _userService.GetMyProfile();
 
-                    var resposta = await client.GetAsync("http://10.2.3.145:8080/api/users/me");
-
-                    if (resposta.IsSuccessStatusCode)
-                    {
-                        var json = await resposta.Content.ReadAsStringAsync();
-
-                        var usuari = JsonSerializer.Deserialize<Usuari>(json);
-
-                        txtNom.Text = usuari.name;
-                        txtMail.Text = usuari.email;
-                        txtRol.Text = usuari.role;
-                        chkActiu.Checked = usuari.active;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error carregant perfil: " + resposta.StatusCode);
-                    }
-                }
+                txtNom.Text = usuari.name;
+                txtMail.Text = usuari.email;
+                txtRol.Text = usuari.role;
+                chkActiu.Checked = usuari.active;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error de connexió: " + ex.Message);
+                MessageBox.Show("Error carregant perfil: " + ex.Message);
             }
         }
+
 
         /// <summary>
         /// Autor: Miquel Uribe Faixedas
@@ -86,58 +75,51 @@ namespace SportSpot.Controls
 
         /// <summary>
         /// Autor: Miquel Uribe Faixedas
-        /// Desa de forma asincrònica les modificacions realitzades al perfil de l'usuari actual,
-        /// enviant una petició PUT a l'API REST amb les dades actualitzades.
+        /// Mètode que actualitza de manera asíncrona les dades del perfil de l'usuari actual, enviant una 
+        /// petició PUT a l'API REST amb les dades modificades. Si el nom d'usuari ha canviat, es força un 
+        /// logout per assegurar que l'usuari torni a iniciar sessió amb el nou nom d'usuari. Si només s'han 
+        /// modificat altres dades, es mostren missatges de confirmació i s'actualitzen les dades de sessió 
+        /// corresponents.
         /// </summary>
         /// <returns>Una tasca que representa l'operació asincrònica.</returns>
         private async Task DesarCanvisAsync()
         {
             try
             {
+                string usernameAntic = Session.user;
+                string usernameNou = txtNom.Text;
+
                 var usuariModificat = new
                 {
                     name = txtNom.Text,
-                    email = txtMail.Text,
+                    email = txtMail.Text
                 };
 
-                var json = JsonSerializer.Serialize(usuariModificat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                bool ok = await _userService.UpdateUser(usernameAntic, usuariModificat);
 
-                using (var client = new HttpClient())
+                if (ok)
                 {
-                    client.DefaultRequestHeaders.Add("Session-Token", Session.sessionToken);
-
-                    string url = $"http://10.2.3.145:8080/api/users/{Session.user}";
-
-                    var resposta = await client.PutAsync(url, content);
-
-                    if (resposta.IsSuccessStatusCode)
+                    // Si el username ha canviat → logout obligatori
+                    if (usernameNou != usernameAntic)
                     {
-                        MessageBox.Show("Dades actualitzades correctament");
+                        MessageBox.Show("Has canviat el nom d'usuari. Torna a iniciar sessió.");
 
-                        // Actualitzar dades de sessió
-                        Session.user = txtNom.Text;
-                        Session.email = txtMail.Text;
+                        TancarSessioIRetornarAlLogin();
+                        return;
                     }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                    {
-                        MessageBox.Show("No tens permisos per modificar aquest usuari");
-                    }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        MessageBox.Show("Usuari no trobat");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error actualitzant dades: " + resposta.StatusCode);
-                    }
+
+                    // Si NO ha canviat el username → només actualitzem dades normals
+                    Session.email = txtMail.Text;
+
+                    MessageBox.Show("Dades actualitzades correctament");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error de connexió: " + ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
+
 
         /// <summary>
         /// Autor: Miquel Uribe Faixedas
@@ -238,47 +220,16 @@ namespace SportSpot.Controls
         {
             try
             {
-                var usuariModificat = new
+                bool ok = await _userService.UpdatePassword(Session.user, txtPassword.Text);
+
+                if (ok)
                 {
-                    password = txtPassword.Text,
-                };
-
-                var json = JsonSerializer.Serialize(usuariModificat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("Session-Token", Session.sessionToken);
-
-                    string url = $"http://10.2.3.145:8080/api/users/{Session.user}";
-
-                    var resposta = await client.PutAsync(url, content);
-
-                    if (resposta.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Dades actualitzades correctament");
-
-                        // Actualitzar dades de sessió
-                        Session.user = txtNom.Text;
-                        Session.email = txtMail.Text;
-                    }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                    {
-                        MessageBox.Show("No tens permisos per modificar aquest usuari");
-                    }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        MessageBox.Show("Usuari no trobat");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error actualitzant dades: " + resposta.StatusCode);
-                    }
+                    MessageBox.Show("Contrasenya actualitzada correctament");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error de connexió: " + ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -479,43 +430,23 @@ namespace SportSpot.Controls
             );
 
             if (result != DialogResult.Yes)
-            {
-                return; // Si diu No, sortim i no fem res més
-            }
+                return;
 
-            // Aquí ja fem la crida a l'API per eliminar el compte
-            using (var client = new HttpClient())
+            try
             {
-                client.BaseAddress = new Uri("http://10.2.3.145:8080/");                
-                client.DefaultRequestHeaders.Add("Session-Token", Session.sessionToken); 
+                bool ok = await _userService.DeleteUser(Session.user);
 
-                var userName = Session.user;                              
-                
-                var response = await client.DeleteAsync($"api/users/{userName}");
-                
-                if (response.StatusCode == HttpStatusCode.NoContent)
+                if (ok)
                 {
-                    MessageBox.Show("El teu compte s'ha eliminat correctament.", "Compte eliminat",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("El teu compte s'ha eliminat correctament.",
+                        "Compte eliminat", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Aquí tanquem sessió i tornem al login
                     TancarSessioIRetornarAlLogin();
                 }
-                else if (response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    MessageBox.Show("No tens permisos per eliminar aquest compte.", "Operació no permesa",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    MessageBox.Show("No s'ha trobat l'usuari.", "No trobat",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                {
-                    MessageBox.Show($"Error en eliminar el compte. Codi: {(int)response.StatusCode}",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

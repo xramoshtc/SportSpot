@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SportSpot.Services;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,8 +13,19 @@ using System.Windows.Forms;
 
 namespace SportSpot
 {
+    /// <summary>
+    /// Autor: Miquel Uribe Faixedas
+    /// Classe per gestionar el registre d'usuaris a l'aplicació. Aquesta classe inclou la validació dels 
+    /// camps d'usuari, contrasenya i correu electrònic, i gestiona la comunicació amb l'API per crear un 
+    /// nou usuari. També proporciona feedback a l'usuari sobre els errors de validació i el resultat del 
+    /// registre. El registre es realitza mitjançant una petició POST a l'endpoint "/api/users/newuser" 
+    /// de l'API, enviant les dades de l'usuari en format JSON. Si el registre és exitós, es mostra un 
+    /// missatge d'èxit i es tanca el formulari per tornar al login. Si hi ha errors, es mostren missatges 
+    /// d'error específics segons el cas. 
+    /// </summary>
     public partial class RegisterForm : Form
     {
+        private readonly UserService _userService = new UserService();
         public RegisterForm()
         {
             InitializeComponent();
@@ -150,62 +162,39 @@ namespace SportSpot
         /// </summary>
         /// <param name="sender">L'objecte que va generar l'esdeveniment</param>
         /// <param name="e">Les dades de l'esdeveniment</param>
+        
         private async void btnRegister_Click(object sender, EventArgs e)
         {
             if (!ValidateForm())
             {
-                lblError.Text = "Algun camp introduït te un error";
+                lblError.Text = "Algun camp introduït té un error";
                 return;
             }
 
-            // Construir l'objecte usuari
             var nouUsuari = new
             {
                 name = txtUser.Text,
                 password = txtPassword.Text,
-                email = txtMail.Text,
+                email = txtMail.Text
             };
-
-            var json = JsonSerializer.Serialize(nouUsuari);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             try
             {
-                using (var client = new HttpClient())
+                bool ok = await _userService.CreateNewUser(nouUsuari);
+
+                if (ok)
                 {
-                    string url = "http://10.2.3.145:8080/api/users/newuser";
-
-                    var resposta = await client.PostAsync(url, content);
-
-                    if (resposta.StatusCode == System.Net.HttpStatusCode.Created)
-                    {
-                        MessageBox.Show("Usuari creat correctament!");
-
-                        this.Close(); // Tornar al login
-                    }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                    {
-                        lblError.Text = "Format incorrecte. Revisa les dades.";
-                        lblError.Visible = true;
-                    }
-                    else if (resposta.StatusCode == System.Net.HttpStatusCode.Conflict)
-                    {
-                        lblError.Text = "Aquest nom d'usuari ja existeix.";
-                        lblError.Visible = true;
-                    }
-                    else
-                    {
-                        lblError.Text = "Error inesperat: " + resposta.StatusCode;
-                        lblError.Visible = true;
-                    }
+                    MessageBox.Show("Usuari creat correctament!");
+                    this.Close(); // Tornar al login
                 }
             }
             catch (Exception ex)
             {
-                lblError.Text = "Error de connexió: " + ex.Message;
+                lblError.Text = ex.Message;
                 lblError.Visible = true;
             }
         }
+
 
         /// <summary>
         /// Autor: Miquel Uribe Faixedas

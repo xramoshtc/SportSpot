@@ -109,7 +109,7 @@
             // 
             lblError.AutoSize = true;
             lblError.ForeColor = Color.FromArgb(229, 57, 53);
-            lblError.Location = new Point(522, 417);
+            lblError.Location = new Point(310, 460);
             lblError.Name = "lblError";
             lblError.Size = new Size(0, 25);
             lblError.TabIndex = 0;
@@ -170,7 +170,7 @@
             // linkRegister
             // 
             linkRegister.AutoSize = true;
-            linkRegister.Location = new Point(310, 463);
+            linkRegister.Location = new Point(310, 500);
             linkRegister.Name = "linkRegister";
             linkRegister.Size = new Size(212, 25);
             linkRegister.TabIndex = 8;

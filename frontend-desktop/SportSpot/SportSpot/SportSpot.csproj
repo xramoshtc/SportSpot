@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="EditPistaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="NewPista.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="NewAdminForm.cs">
       <SubType>Form</SubType>
     </Compile>
