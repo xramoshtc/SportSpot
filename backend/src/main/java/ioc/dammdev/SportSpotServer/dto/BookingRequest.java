@@ -19,6 +19,6 @@ import lombok.NoArgsConstructor;
 public class BookingRequest {
     private Long courtId;
     private String dateTime; // "2026-04-15T10:00"
-    private int durationMinutes;
+    private int durationHours;
     // Getters i Setters
 }

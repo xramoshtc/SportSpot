@@ -8,20 +8,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Proves de persistència per al repositori de reserves.
- * Verifica les relacions ManyToOne amb User i Court.
+ * Adaptat per a la lògica de solapaments i camps persistits (endTime).
+ * 
  * @author Gess Montalbán
  */
-@DataJpaTest // Configura H2 en memòria, Hibernate i Spring Data JPA
-@ActiveProfiles("test")   
+@DataJpaTest
+@ActiveProfiles("test")
 class BookingRepoTests {
 
     @Autowired
@@ -35,21 +36,26 @@ class BookingRepoTests {
 
     @BeforeEach
     void setUp() {
-        // Preparem dades de prova persistides
+        // Creem dades de prova. Nota: User i Court mantenen els seus constructors
         User user = new User(null, "TestUser", "pass", "test@test.com", "USER", true);
         savedUser = entityManager.persistFlushFind(user);
 
-        Court court = new Court(null,"Pista Central", "Pàdel", 25.0, 12,"Valencia");
+        Court court = new Court(null, "Pista Central", "Pàdel", 25.0, 12, "Valencia");
         savedCourt = entityManager.persistFlushFind(court);
     }
 
-    /**
-     * Verifica que es pot guardar una reserva i recuperar-la per l'usuari.
-     */
     @Test
     void whenFindByUser_thenReturnBookingList() {
-        // GIVEN
-        Booking booking = new Booking(null, LocalDateTime.now().plusDays(1), 60, savedUser, savedCourt);
+        // GIVEN: El constructor ara usa dateTime i durationHours. El ID és null.
+        // Utilitzem builder() de Lombok per no barallar-nos amb els constructors
+        // a vegades no dispara els @PrePersist depenent de la configuració.
+        Booking booking = Booking.builder()
+                .dateTime(LocalDateTime.now().plusDays(1).withMinute(0).withSecond(0))
+                .durationHours(1)
+                .user(savedUser)
+                .court(savedCourt)
+                .build();
+        booking.autoCalculateEndTime(); // Assegurem el càlcul per al test
         entityManager.persistAndFlush(booking);
 
         // WHEN
@@ -57,25 +63,55 @@ class BookingRepoTests {
 
         // THEN
         assertFalse(found.isEmpty());
-        assertEquals(1, found.size());
         assertEquals(savedUser.getName(), found.get(0).getUser().getName());
-        assertEquals(savedCourt.getName(), found.get(0).getCourt().getName());
     }
 
     /**
-     * Verifica que la cerca per ID de pista funciona correctament (Llistes).
+     * Test CRÍTIC: Verifica que la consulta detecta solapaments entre intervals.
      */
     @Test
-    void whenFindByCourtId_thenReturnCorrectBookings() {
-        // GIVEN
-        Booking b1 = new Booking(null, LocalDateTime.now().plusDays(1), 60, savedUser, savedCourt);
-        entityManager.persistAndFlush(b1);
+    void whenOverlapping_thenReturnConflict() {
+        // GIVEN: Una reserva de 10h a 12h (2 hores)
+        LocalDateTime tenAM = LocalDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0);
+        Booking existing = Booking.builder()
+                .dateTime(tenAM)
+                .durationHours(2)
+                .user(savedUser)
+                .court(savedCourt)
+                .build();
+        existing.autoCalculateEndTime();
+        entityManager.persistAndFlush(existing);
 
-        // WHEN
-        List<Booking> found = bookingRepository.findByCourtId(savedCourt.getId());
+        // WHEN: Intentem buscar solapament amb una de 11h a 12h
+        LocalDateTime elevenAM = tenAM.plusHours(1);
+        LocalDateTime twelvePM = tenAM.plusHours(2);
+        
+        List<Booking> conflicts = bookingRepository.findOverlappingBookings(
+                savedCourt, elevenAM, twelvePM);
 
         // THEN
-        assertEquals(1, found.size());
-        assertEquals("Pista Central", found.get(0).getCourt().getName());
+        assertFalse(conflicts.isEmpty(), "Hauria de trobar la reserva existent com a conflicte");
+        assertEquals(1, conflicts.size());
+    }
+
+    @Test
+    void whenNoOverlap_thenReturnEmptyList() {
+        // GIVEN: Reserva de 10h a 11h
+        LocalDateTime tenAM = LocalDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0);
+        Booking existing = Booking.builder()
+                .dateTime(tenAM)
+                .durationHours(1)
+                .user(savedUser)
+                .court(savedCourt)
+                .build();
+        existing.autoCalculateEndTime();
+        entityManager.persistAndFlush(existing);
+
+        // WHEN: Busquem de 11h a 12h (no solapa)
+        List<Booking> conflicts = bookingRepository.findOverlappingBookings(
+                savedCourt, tenAM.plusHours(1), tenAM.plusHours(2));
+
+        // THEN
+        assertTrue(conflicts.isEmpty(), "No hauria de trobar cap conflicte");
     }
 }

@@ -16,7 +16,8 @@ import lombok.Data;
 public class BookingResponse {
     private Long id;
     private LocalDateTime dateTime;
-    private int durationMinutes;
+    private int durationHours;
+    private LocalDateTime endTime;
     private String userName; // Només el nom, per seguretat
     private String courtName; //Nom de la pista
     private String location;  //On és la pista

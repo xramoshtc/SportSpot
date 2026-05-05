@@ -19,14 +19,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * Controlador principal per a l'activitat esportiva (Pistes i Reserves).
- * Centralitza els 6 endpoints definits a la Wiki.
+ * Centralitza els endpoints de gestió de pistes i reserves.
+ * Inclou gestió d'excepcions de negoci per retornar missatges d'error al client.
  * @author Gess Montalbán
  */
 @RestController
 @RequestMapping("/api")
 public class SportController {
 
-     
     @Autowired
     private CourtService courtService;
 
@@ -53,14 +53,6 @@ public class SportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mapToCourtDTO(newCourt));
     }
     
-    /**
-     * Actualitza les dades d'una pista existent.
-     * Només accessible per a usuaris amb rol ADMIN.
-     * @param token El token de sessió de l'administrador.
-     * @param id L'identificador de la pista a modificar.
-     * @param courtData Objecte amb les noves dades de la pista.
-     * @return ResponseEntity amb el CourtDTO actualitzat (200 OK) o 403 Forbidden.
-     */
     @PutMapping("/courts/{id}")
     public ResponseEntity<CourtDTO> updateCourt(@RequestHeader("Session-Token") String token, 
                                                @PathVariable Long id, 
@@ -70,13 +62,6 @@ public class SportController {
         return ResponseEntity.ok(mapToCourtDTO(updated));
     }
 
-    /**
-     * Elimina una pista del sistema de forma permanent.
-     * Operació restringida a administradors.
-     * @param token El token de sessió de l'administrador.
-     * @param id L'identificador de la pista a esborrar.
-     * @return 204 No Content si s'ha esborrat, o 403 Forbidden si no té permisos.
-     */
     @DeleteMapping("/courts/{id}")
     public ResponseEntity<Void> deleteCourt(@RequestHeader("Session-Token") String token, 
                                            @PathVariable Long id) {
@@ -84,13 +69,6 @@ public class SportController {
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
     
-       /**
-     * Obté la llista de reserves d'una pista. Si s'inclou la data filtrarà per dia.
-     * @param token El token de sessió de l'administrador.
-     * @param id L'identificador de la pista a consultar.
-     * @param date
-     * @return ResponseEntity amb la llista de reserves (200 OK), 204 No Content si no hi ha reserves.
-     */
     @GetMapping("/courts/{id}/bookings")
     public ResponseEntity<List<BookingResponse>> getCourtBookingsByDate(@RequestHeader("Session-Token") String token,
                                                                     @PathVariable Long id,
@@ -98,48 +76,48 @@ public class SportController {
                                                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date
                                                                     ){
         
-        //1. Obtenim les reserves de la pista
-        List<Booking> existingBookings = bookingService.getBookingsByCourt(token,id);
+        List<Booking> existingBookings = bookingService.getBookingsByCourt(token, id);
         if (existingBookings == null || existingBookings.isEmpty())
-           return  ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+           return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         
-        //2. Filtrem per data exacta
         List<BookingResponse> filteredBookings = existingBookings.stream()
-                                                        .filter(b -> date == null || b.getDateTime().equals(date))
-                                                        .map(b -> {
-                                                            BookingResponse res = this.mapToBookingResponse(b);
-                                                            res.setUserName(null); //No retornem l'usuari de la reserva per privacitat
-                                                            return res;
-                                                                })
-                                                        .toList();
+                       .filter(b -> {
+                            if (date == null) return true;
+                            return date.equals(b.getDateTime());
+                            })
+                        .map(b -> {
+                            BookingResponse res = this.mapToBookingResponse(b);
+                            res.setUserName(null); // Privacitat: No mostrem qui ha reservat a altres usuaris
+                            return res;
+                                 })
+                        .toList();
         return ResponseEntity.ok(filteredBookings); 
-               
-        
-        
     }
 
 
     // --- ENDPOINTS DE RESERVES ---
+
     /**
-     * Crea una nova reserva d'una pista. Si s'inclou la data filtrarà per dia.
-     * @param token El token de sessió de l'administrador.
-     * @param request Reserva a desar
-     * @return ResponseEntity amb la reserva (200 OK), 204 No Content si no hi ha reserves.
+     * Crea una nova reserva. Captura errors de negoci (solapament, horari) i retorna 400 Bad Request.
      */
     @PostMapping("/bookings")
-    public ResponseEntity<BookingResponse> createBooking(@RequestHeader("Session-Token") String token,
-                                                        @RequestBody BookingRequest request) {
-        // Convertim el RequestDTO a Entitat temporal per al Service
-        Booking bookingTemplate = new Booking();
-        bookingTemplate.setDateTime(java.time.LocalDateTime.parse(request.getDateTime()));
-        bookingTemplate.setDurationMinutes(request.getDurationMinutes());
+    public ResponseEntity<?> createBooking(@RequestHeader("Session-Token") String token,
+                                                         @RequestBody BookingRequest request) {
+        try {
+            // Convertim el RequestDTO a Entitat temporal per al Service
+            Booking bookingTemplate = new Booking();
+            bookingTemplate.setDateTime(LocalDateTime.parse(request.getDateTime()));
+            bookingTemplate.setDurationHours(request.getDurationHours());
 
-        Booking savedBooking = bookingService.createBooking(request.getCourtId(), bookingTemplate, token);
-        
-        if (savedBooking == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            Booking savedBooking = bookingService.createBooking(request.getCourtId(), bookingTemplate, token);
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapToBookingResponse(savedBooking));
+            
+        } catch (RuntimeException e) {
+            // Retornem el missatge d'error de negoci (ex: "Pista ocupada") directament al client
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error intern al processar la reserva.");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToBookingResponse(savedBooking));
     }
 
     @GetMapping("/bookings/my")
@@ -151,18 +129,7 @@ public class SportController {
                 .map(this::mapToBookingResponse)
                 .collect(Collectors.toList()));
     }
-    
-  
 
-   
-    /**
-     * Cancel·la una reserva existent.
-     * Un client només pot esborrar les seves pròpies reserves.
-     * Un administrador pot esborrar qualsevol reserva del sistema.
-     * @param token El token de sessió de l'usuari o administrador.
-     * @param id L'identificador de la reserva a cancel·lar.
-     * @return 204 No Content si s'ha cancel·lat correctament, o 403 Forbidden.
-     */
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<Void> deleteBooking(@RequestHeader("Session-Token") String token, 
                                              @PathVariable Long id) {
@@ -172,25 +139,24 @@ public class SportController {
     }
     
     /**
-     * Modifica una reserva existent.
-     * Útil per canviar l'horari o la durada de l'esdeveniment reservat.
-     * @param token El token de sessió de l'usuari (Header).
-     * @param id L'ID de la reserva a la URL.
-     * @param request Objecte JSON amb les noves dades.
-     * @return ResponseEntity amb la BookingResponse actualitzada o 403 Forbidden.
+     * Actualitza una reserva. També gestiona errors de disponibilitat.
      */
     @PutMapping("/bookings/{id}")
-    public ResponseEntity<BookingResponse> updateBooking(@RequestHeader("Session-Token") String token,
-                                                        @PathVariable Long id,
-                                                        @RequestBody BookingRequest request) {
-        Booking updated = bookingService.updateBooking(id, request, token);
-        if (updated == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    public ResponseEntity<?> updateBooking(@RequestHeader("Session-Token") String token,
+                                                         @PathVariable Long id,
+                                                         @RequestBody BookingRequest request) {
+        try {
+            Booking updated = bookingService.updateBooking(id, request, token);
+            if (updated == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            return ResponseEntity.ok(mapToBookingResponse(updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return ResponseEntity.ok(mapToBookingResponse(updated));
     }
 
-    // --- MÈTODES PRIVATS DE MAPPING (Per no enviar objectes complets) ---
+    // --- MÈTODES PRIVATS DE MAPPING ---
 
     private CourtDTO mapToCourtDTO(Court court) {
         CourtDTO dto = new CourtDTO();
@@ -207,7 +173,8 @@ public class SportController {
         BookingResponse res = new BookingResponse();
         res.setId(b.getId());
         res.setDateTime(b.getDateTime());
-        res.setDurationMinutes(b.getDurationMinutes());
+        res.setEndTime(b.getEndTime()); // Afegim el camp calculat a la resposta
+        res.setDurationHours(b.getDurationHours());
         res.setUserName(b.getUser().getName());
         res.setCourtName(b.getCourt().getName());
         res.setLocation(b.getCourt().getLocation());

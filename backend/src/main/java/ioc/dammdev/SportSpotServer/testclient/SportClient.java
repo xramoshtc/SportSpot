@@ -24,8 +24,8 @@ public class SportClient {
      
 
 
- //String baseUrl = "https://localhost:";
-  String baseUrl = "https://10.2.3.145:";
+ String baseUrl = "https://localhost:";
+ // String baseUrl = "https://10.2.3.145:";
 
 
 
@@ -105,7 +105,7 @@ public class SportClient {
         BookingRequest request = new BookingRequest();
         request.setCourtId(courtId);
         request.setDateTime(dateTime);
-        request.setDurationMinutes(duration);
+        request.setDurationHours(duration);
 
         HttpEntity<BookingRequest> entity = new HttpEntity<>(request, headers);
 
@@ -173,7 +173,7 @@ public class SportClient {
         if (courts != null && !courts.isEmpty()) {
             Long firstCourtId = courts.get(0).getId();
             System.out.println("\n3. Reservant la pista ID " + firstCourtId + "...");
-            BookingResponse res = client.createBooking(firstCourtId, "2026-06-15T18:00:00", 60, myToken);
+            BookingResponse res = client.createBooking(firstCourtId, "2026-06-15T18:00:00", 1, myToken);
             if (res != null) {
                 System.out.println("Reserva confirmada! ID Reserva: " + res.getId());
             }
@@ -185,6 +185,29 @@ public class SportClient {
         if (myBookings != null) {
             System.out.println("Tens " + myBookings.size() + " reserva/es activa/es.");
         }
+        
+        // 5. PROVA DE SOLAPAMENT
+        Long targetCourtId = 1L; // Pista de prova
+        String eventTime = "2026-07-20T10:00:00";
+        
+        System.out.println("\n--- Pas A: Realitzant reserva original (10:00h, 2h) ---");
+        BookingResponse res1 = client.createBooking(targetCourtId, eventTime, 2, myToken);
+        if (res1 != null) {
+            System.out.println("[+] Reserva 1 confirmada ID: " + res1.getId());
+        }
+
+        System.out.println("\n--- Pas B: Intentant solapar reserva (11:00h, 1h) ---");
+        // Aquesta reserva està dins del rang de la primera (10:00 a 12:00)
+        BookingResponse res2 = client.createBooking(targetCourtId, "2026-07-20T11:00:00", 1, myToken);
+
+        if (res2 == null) {
+            System.out.println("[OK] Validació correcta: El servidor ha impedit el solapament.");
+        } else {
+            System.err.println("[FALLADA] El servidor ha permès solapar la reserva! Revisar lògica.");
+        }
+
+        System.out.println("\n=== FI DEL TEST DE SOLAPAMENT ===");
+    
 
         // 5. LOGOUT
         System.out.println("\n5. Tancant sessió...");
