@@ -1,7 +1,9 @@
 package ioc.dammdev.SportSpotServer.service;
 
+import ioc.dammdev.SportSpotServer.dto.SessionDTO;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.UserRepository;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,9 +51,21 @@ public class UserServiceTest {
     }
 
     // --- TESTS DE LOGIN I SESSIONS ---
-
-    /**
+    
+    
+     /**
      * Comprova que un usuari pot fer login correctament si existeix i no té una sessió activa.
+     */
+//    @Test
+//    
+//    void testTokenExpiration() {
+//        String token = userService.createSession(testUser);
+//        
+//        SessionDTO session = new SessionDTO("Gess", LocalDateTime.now().minusMinutes(1));
+//        assertTrue(session.isExpired());
+//    }
+    /**
+     * Comprova que un usuari té la sessió caducada.
      */
     @Test
     void whenLoginSuccessful_thenReturnsUser() {

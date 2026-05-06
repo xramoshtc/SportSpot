@@ -65,6 +65,30 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         @Param("start") LocalDateTime start, 
         @Param("end") LocalDateTime end
     );
+    
+        
+    /**
+     * Cerca qualsevol reserva existent que coincideixi amb la pista i se solapi 
+     * amb l'interval de temps proporcionat, exceptuant una ID determinada.
+     * 
+     * Lògica JPQL: (IniciNova < FinalBD) AND (FinalNova > IniciBD)
+     * On FinalBD es calcula com (b.startTime + b.durationHours)
+     * 
+     * @param court La pista a consultar.
+     * @param start Hora d'inici de la nova reserva.
+     * @param end Hora de finalització de la nova reserva (start + durationHours).
+     * @param excludeId Id de reserva a excloure de la comprovació
+     * @return Llista de reserves que col·lideixen.
+     */
+    
+        @Query("SELECT b FROM Booking b WHERE b.court = :court AND b.id != :excludeId AND " +
+           "(:start < b.endTime) AND (:end > b.dateTime)")
+    List<Booking> findOverlappingBookingsExcludingId(
+        @Param("court") Court court, 
+        @Param("start") LocalDateTime start, 
+        @Param("end") LocalDateTime end, 
+        @Param("excludeId") Long excludeId
+    );
 
     
 }

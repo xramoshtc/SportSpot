@@ -102,7 +102,7 @@ public ResponseEntity<User> getMyProfile(
         @RequestHeader(value = "Session-Token", required = false) String token){
        
         // Verifiquem usuari admin loguejat
-        if (!userService.isValidToken(token) || !userService.isValidSession(token) || !userService.isAdmin(token)){
+        if (!userService.isValidSession(token) || !userService.isAdmin(token)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(userService.getAllUsers());
