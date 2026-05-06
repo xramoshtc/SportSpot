@@ -1,13 +1,16 @@
 package ioc.dammdev.SportSpotServer.service;
 
+import ioc.dammdev.SportSpotServer.dto.SessionDTO;
 import ioc.dammdev.SportSpotServer.model.User;
 import ioc.dammdev.SportSpotServer.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -25,7 +28,8 @@ public class UserService {
     
       // Guardarem en memòria l'usuari i token de sessió
     // Clau: Token (String) | Valor: Nom d'usuari (String)
-    private static final java.util.Map<String, String> sessionsActives = new java.util.HashMap<>();
+    private static final ConcurrentHashMap<String, SessionDTO> activeSessions = new ConcurrentHashMap<>();
+    private final int SESSION_TIMEOUT_MINUTES = 30;
     
     /**
      * Valida les credencials comparant el text pla amb el hash de la BD.
@@ -54,7 +58,7 @@ public class UserService {
           return Optional.empty();
         
         User userBD = user.get();
-        if (authenticate(password, userBD.getPassword()) && !isLogged(userBD.getName()))              
+        if (authenticate(password, userBD.getPassword()))              
             return user;
         
         return Optional.empty();
@@ -67,7 +71,7 @@ public class UserService {
      * @author Gess Montalban
      */
     public boolean logout(String token){
-        if (sessionsActives.containsKey(token)){
+        if (activeSessions.containsKey(token)){
             closeSession(token);
            return true;
         }
@@ -89,7 +93,8 @@ public class UserService {
         // Comprovem si l'usuari existeix i si la contrasenya coincideix
         if (user.isPresent()) {
             String token = UUID.randomUUID().toString().substring(0, 8);
-            sessionsActives.put(token, user.get().getName());
+            LocalDateTime expiry = LocalDateTime.now().plusMinutes(SESSION_TIMEOUT_MINUTES);
+            activeSessions.put(token, new SessionDTO(user.get().getName(),expiry));
             return token;
         }
          else
@@ -115,7 +120,7 @@ public class UserService {
      */
     public boolean isTokenOfName(String token, String name){
         
-            if (name.equals(sessionsActives.get(token)))
+            if (name.equals(activeSessions.get(token).getUsername()))
                     return true;
             return false;
     }    
@@ -127,22 +132,18 @@ public class UserService {
      * @return true si la sessió existeix i és activa, false en cas contrari
      */
     public boolean isValidSession(String token){
-        return sessionsActives.containsKey(token);
+        if (!isValidToken(token)) return false;
+        SessionDTO session = activeSessions.get(token);
+        if (session == null) return false;
+        if (session.isExpired()){
+            closeSession(token);
+            return false;
+        }
+        return true;
                               
         
     }
-    /**
-     * Comprova si un usuari ja té una sessió activa.
-     *
-     * @param userName nom de l'usuari
-     * @return true si l'usuari ja està loguejat, false si no té sessió activa
-     */
-    public boolean isLogged(String userName){
-        if (sessionsActives.containsValue(userName))
-            return true;
-        else 
-            return false;
-    }
+    
     
     /**
      * Tanca una sessió eliminant el token del sistema.
@@ -150,14 +151,14 @@ public class UserService {
      * @param token el token de la sessió a eliminar
      */
     public void closeSession(String token){
-        sessionsActives.remove(token);
+        activeSessions.remove(token);
     }
     
     /**
      * Elimina totes les sessions actives del sistema.
      */
     public void clearSessions(){
-        sessionsActives.clear();
+        activeSessions.clear();
     }
     
     /**
@@ -170,11 +171,11 @@ public class UserService {
         if (token == null) return false;
         
         //Busquem usuari associat a la sessió
-        String user = sessionsActives.get(token);
+        SessionDTO user = activeSessions.get(token);
         //Si el token no existeix o ha caducat
         if (user == null) return false;
         // Busquem usuari a la base de dades
-        Optional<User> loggedUser = userRepository.findByName(user);
+        Optional<User> loggedUser = userRepository.findByName(user.getUsername());
         if ( loggedUser.isPresent()){
             if (loggedUser.get().getRole().equals("ADMIN"))
                 return true;
@@ -305,7 +306,7 @@ public class UserService {
     }
 
     public User getUserByToken(String token) {
-        String name = sessionsActives.get(token);
+        String name = activeSessions.get(token).getUsername();
         return userRepository.findByName(name).get();
     }
 }
