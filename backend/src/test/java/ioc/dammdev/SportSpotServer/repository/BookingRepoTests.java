@@ -97,7 +97,7 @@ class BookingRepoTests {
     @Test
     void whenNoOverlap_thenReturnEmptyList() {
         // GIVEN: Reserva de 10h a 11h
-        LocalDateTime tenAM = LocalDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0);
+        LocalDateTime tenAM = LocalDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0).withNano(0);
         Booking existing = Booking.builder()
                 .dateTime(tenAM)
                 .durationHours(1)
