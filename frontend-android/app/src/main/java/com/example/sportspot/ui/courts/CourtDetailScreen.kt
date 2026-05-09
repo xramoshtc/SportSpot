@@ -15,10 +15,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sportspot.ui.utils.courtTypeIcon
 import com.example.sportspot.ui.weather.WeatherCard
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -48,15 +50,25 @@ fun CourtDetailScreen(
         factory = CourtDetailViewModel.provideFactory(LocalContext.current)
     )
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     val uiState by viewModel.uiState.collectAsState()
     val weather by viewModel.weather.collectAsState()
+    val occupiedSlots by viewModel.occupiedSlots.collectAsState()
+    val loadingSlots by viewModel.loadingSlots.collectAsState()
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedSlot by remember { mutableStateOf<String?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+
+
+    val today = LocalDate.now()
 
     LaunchedEffect(uiState, selectedDate) {
         if (uiState is CourtDetailUiState.BookingSuccess) {
+            snackbarHostState.showSnackbar("Reserva confirmada!")
             onBookingConfirmed()
             return@LaunchedEffect
         }
@@ -71,6 +83,11 @@ fun CourtDetailScreen(
                 city = it.location,
                 date = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
             )
+            // Carreguem les franges ocupades per al dia seleccionat
+            viewModel.loadOccupiedSlots(
+                courtId = it.id,
+                date = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+            )
         }
     }
 
@@ -83,15 +100,29 @@ fun CourtDetailScreen(
             TopAppBar(
                 title = {
                     val title = (uiState as? CourtDetailUiState.Success)?.court?.name ?: "Detall"
-                    Text(title)
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C2B3A)
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Tornar")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tornar",
+                            tint = Color(0xFF1C2B3A)
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
 
         when (uiState) {
@@ -103,7 +134,7 @@ fun CourtDetailScreen(
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color(0xFF4F7AA3))
                 }
             }
 
@@ -114,10 +145,24 @@ fun CourtDetailScreen(
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = (uiState as CourtDetailUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "No s'ha pogut carregar la pista",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.loadCourt(courtId) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4F7AA3),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("Tornar a intentar", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 
@@ -136,9 +181,9 @@ fun CourtDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    contentPadding = PaddingValues(vertical = 20.dp)
                 ) {
 
                     // Targeta d'informació de la pista
@@ -146,38 +191,48 @@ fun CourtDetailScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
+                                containerColor = Color(0xFFE8F0F8)
                             ),
-                            elevation = CardDefaults.cardElevation(4.dp)
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            shape = MaterialTheme.shapes.medium
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 // Esquerra: tipus i localització
                                 Column {
-                                    Text(
-                                        text = court.type,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = courtTypeIcon(court.type),
+                                            contentDescription = null,
+                                            tint = Color(0xFF4F7AA3),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = court.type,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF4F7AA3)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            modifier = Modifier.size(14.dp),
-                                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            modifier = Modifier.size(16.dp),
+                                            tint = Color(0xFF1C2B3A).copy(alpha = 0.45f)
                                         )
-                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
                                         Text(
                                             text = court.location,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
                                         )
                                     }
                                 }
@@ -185,16 +240,15 @@ fun CourtDetailScreen(
                                 // Dreta: preu destacat
                                 Card(
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                                        containerColor = Color(0xFF2E86DE).copy(alpha = 0.15f)
                                     ),
                                     shape = MaterialTheme.shapes.small
                                 ) {
                                     Text(
                                         text = "${court.pricePerHour}€/h",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        color = MaterialTheme.colorScheme.secondary,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1A3A5A),
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                                     )
                                 }
@@ -206,17 +260,18 @@ fun CourtDetailScreen(
                     item {
                         Text(
                             text = "Selecciona un dia",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color(0xFF1C2B3A)
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         androidx.compose.foundation.lazy.LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val days = (0..6).map { LocalDate.now().plusDays(it.toLong()) }
+                            val days = (0..6).map { today.plusDays(it.toLong()) }
                             items(days) { date ->
                                 val isSelected = date == selectedDate
+                                val isToday = date == today
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = {
@@ -226,21 +281,37 @@ fun CourtDetailScreen(
                                     label = {
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.padding(vertical = 6.dp)
+                                            modifier = Modifier.padding(vertical = 4.dp)
                                         ) {
                                             Text(
-                                                text = date.dayOfWeek
-                                                    .getDisplayName(TextStyle.SHORT, Locale("ca")),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                fontWeight = FontWeight.Medium
+                                                text = if (isToday) "Avui"
+                                                else date.dayOfWeek.getDisplayName(
+                                                    TextStyle.SHORT, Locale("ca")
+                                                ).replaceFirstChar { it.uppercase() },
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal
                                             )
                                             Text(
                                                 text = date.dayOfMonth.toString(),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal
                                             )
                                         }
-                                    }
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF4F7AA3),
+                                        selectedLabelColor = Color.White,
+                                        containerColor = Color(0xFFE8F0F8),
+                                        labelColor = Color(0xFF1C2B3A)
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        selectedBorderColor = Color.Transparent,
+                                        borderColor = Color(0xFF4F7AA3).copy(alpha = 0.4f)
+                                    )
                                 )
                             }
                         }
@@ -250,16 +321,32 @@ fun CourtDetailScreen(
                     item {
                         weather?.let {
                             WeatherCard(weather = it)
-                        } ?: Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        } ?: Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFE8F0F8)
+                            ),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            shape = MaterialTheme.shapes.medium
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color(0xFF4F7AA3)
+                                )
+                                Text(
+                                    text = "Carregant el temps...",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
+                                )
+                            }
                         }
                     }
 
@@ -267,37 +354,64 @@ fun CourtDetailScreen(
                     item {
                         Text(
                             text = "Selecciona una franja horària",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color(0xFF1C2B3A)
                         )
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Graella 4 columnes
-                        val slots = (8..23).map { hour ->
-                            "%02d:00".format(hour)
-                        }
-
-                        // Usem LazyVerticalGrid dins d'un Box amb alçada fixa
-                        // perquè LazyColumn no admet LazyVerticalGrid directament
-                        val rowCount = Math.ceil(slots.size / 4.0).toInt()
-                        val gridHeight = (rowCount * 72).dp
-
-                        Box(modifier = Modifier.height(gridHeight)) {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(4),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                userScrollEnabled = false
+                        if (loadingSlots) {
+                            // Missatge de càrrega mentre s'obtenen les franges ocupades
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFE8F0F8)
+                                ),
+                                elevation = CardDefaults.cardElevation(2.dp),
+                                shape = MaterialTheme.shapes.medium
                             ) {
-                                items(slots) { slot ->
-                                    val isSelected = slot == selectedSlot
-                                    SlotGridItem(
-                                        slot = slot,
-                                        isSelected = isSelected,
-                                        onClick = { selectedSlot = slot }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Color(0xFF4F7AA3)
+                                    )
+                                    Text(
+                                        text = "Carregant franges disponibles...",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
                                     )
                                 }
+                            }
+                        } else {
+                            val slots = (8..23).map { hour -> "%02d:00".format(hour) }
+                            slots.chunked(4).forEach { rowSlots ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    rowSlots.forEach { slot ->
+                                        SlotGridItem(
+                                            slot = slot,
+                                            isSelected = slot == selectedSlot,
+                                            isOccupied = occupiedSlots.contains(slot),
+                                            onClick = {
+                                                if (!occupiedSlots.contains(slot)) selectedSlot = slot
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    repeat(4 - rowSlots.size) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
@@ -310,7 +424,7 @@ fun CourtDetailScreen(
                             Text(
                                 text = (uiState as CourtDetailUiState.BookingError).message,
                                 color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                         }
@@ -322,8 +436,10 @@ fun CourtDetailScreen(
                                 .fillMaxWidth()
                                 .height(52.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
+                                containerColor = Color(0xFF4F7AA3),
+                                contentColor = Color.White,
+                                disabledContainerColor = Color(0xFF1C2B3A).copy(alpha = 0.12f),
+                                disabledContentColor = Color(0xFF1C2B3A).copy(alpha = 0.4f)
                             )
                         ) {
                             Text(
@@ -331,7 +447,7 @@ fun CourtDetailScreen(
                                     "Reservar ${selectedSlot}h"
                                 else
                                     "Selecciona una franja",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -349,29 +465,49 @@ fun CourtDetailScreen(
 
                     AlertDialog(
                         onDismissRequest = { showConfirmDialog = false },
-                        title = { Text("Confirmar reserva") },
+                        containerColor = Color(0xFFE8F0F8),
+                        title = {
+                            Text(
+                                text = "Confirmar reserva",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1C2B3A)
+                            )
+                        },
                         text = {
                             Text(
-                                "Vols reservar ${court.name} el " +
+                                text = "Vols reservar ${court.name} el " +
                                         "${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))} " +
-                                        "de ${selectedSlot}h a ${"%02d:00".format(hour + 1)}h?"
+                                        "de ${selectedSlot}h a ${"%02d:00".format(hour + 1)}h?",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color(0xFF1C2B3A).copy(alpha = 0.75f)
                             )
                         },
                         confirmButton = {
-                            TextButton(onClick = {
-                                showConfirmDialog = false
-                                viewModel.createBooking(
-                                    courtId = court.id,
-                                    dateTime = dateTimeIso,
-                                    durationMinutes = 60
+                            Button(
+                                onClick = {
+                                    showConfirmDialog = false
+                                    viewModel.createBooking(
+                                        courtId = court.id,
+                                        dateTime = dateTimeIso,
+                                        durationHours = 1
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF4F7AA3),
+                                    contentColor = Color.White
                                 )
-                            }) {
-                                Text("Confirmar", color = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("Confirmar", fontWeight = FontWeight.Bold)
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showConfirmDialog = false }) {
-                                Text("Cancel·lar")
+                                Text(
+                                    "Cancel·lar",
+                                    color = Color(0xFF4F7AA3),
+                                    fontWeight = FontWeight.Medium
+                                )
                             }
                         }
                     )
@@ -385,37 +521,42 @@ fun CourtDetailScreen(
  * Component que representa una franja horària dins de la graella.
  *
  * Mostra l'hora de inici de la franja i es ressalta quan està seleccionada.
+ * Les franges ocupades es mostren en vermell i no es poden seleccionar.
  *
  * @author Jesús Ramos
  *
  * @param slot Hora d'inici de la franja (ex: "10:00").
  * @param isSelected Indica si aquesta franja està seleccionada.
+ * @param isOccupied Indica si aquesta franja ja està reservada.
  * @param onClick Funció que s'executa en prémer la franja.
+ * @param modifier Modifier addicional per controlar l'amplada dins la graella.
  */
 @Composable
 fun SlotGridItem(
     slot: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    isOccupied: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val containerColor = if (isSelected)
-        MaterialTheme.colorScheme.primary
-    else
-        MaterialTheme.colorScheme.surface
-
-    val contentColor = if (isSelected)
-        MaterialTheme.colorScheme.onPrimary
-    else
-        MaterialTheme.colorScheme.onSurface
+    val containerColor = when {
+        isOccupied -> Color(0xFFFFCDD2)
+        isSelected -> Color(0xFF4F7AA3)
+        else       -> Color(0xFFE8F0F8)
+    }
+    val textColor = when {
+        isOccupied -> Color(0xFFB71C1C)
+        isSelected -> Color.White
+        else       -> Color(0xFF1C2B3A)
+    }
 
     Card(
         onClick = onClick,
+        enabled = !isOccupied,
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(if (isSelected) 6.dp else 2.dp),
         shape = MaterialTheme.shapes.medium,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp)
+        modifier = modifier.height(56.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -426,12 +567,13 @@ fun SlotGridItem(
                     text = slot,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = contentColor
+                    color = textColor
                 )
                 Text(
-                    text = "%02d:00".format(slot.take(2).toInt() + 1),
+                    text = if (isOccupied) "Ocupat"
+                    else "%02d:00".format(slot.take(2).toInt() + 1),
                     style = MaterialTheme.typography.labelSmall,
-                    color = contentColor.copy(alpha = 0.7f)
+                    color = textColor.copy(alpha = if (isOccupied) 0.8f else 0.75f)
                 )
             }
         }

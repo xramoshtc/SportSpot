@@ -5,6 +5,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sportspot.domain.model.DayWeather
 import com.example.sportspot.domain.model.WeatherHelper
@@ -24,7 +26,7 @@ fun WeatherCard(weather: DayWeather) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = Color(0xFFE8F0F8)
         ),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = MaterialTheme.shapes.medium
@@ -34,31 +36,30 @@ fun WeatherCard(weather: DayWeather) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = WeatherHelper.weatherEmoji(weather.weatherCode),
-                    style = MaterialTheme.typography.headlineLarge
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
                         text = WeatherHelper.weatherDescription(weather.weatherCode),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1C2B3A)
                     )
                     Text(
                         text = "${weather.tempMin}° — ${weather.tempMax}°C",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        color = Color(0xFF1C2B3A).copy(alpha = 0.6f)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                color = Color(0xFF1C2B3A).copy(alpha = 0.1f)
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -66,21 +67,9 @@ fun WeatherCard(weather: DayWeather) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                WeatherStat(
-                    emoji = "💧",
-                    value = "${weather.precipitationProbability}%",
-                    label = "Pluja"
-                )
-                WeatherStat(
-                    emoji = "💨",
-                    value = "${weather.windspeedMax} km/h",
-                    label = "Vent"
-                )
-                WeatherStat(
-                    emoji = "🌡️",
-                    value = "${weather.tempMax}°C",
-                    label = "Màx."
-                )
+                WeatherStat("💧", "${weather.precipitationProbability}%", "Pluja")
+                WeatherStat("💨", "${weather.windspeedMax} km/h", "Vent")
+                WeatherStat("🌡️", "${weather.tempMax}°C", "Màx.")
             }
         }
     }
@@ -99,7 +88,7 @@ fun WeatherCard(weather: DayWeather) {
 fun WeatherCompact(weather: DayWeather) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
             text = WeatherHelper.weatherEmoji(weather.weatherCode),
@@ -107,18 +96,18 @@ fun WeatherCompact(weather: DayWeather) {
         )
         Text(
             text = "${weather.tempMax}°C",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFF1C2B3A)
         )
         Text(
             text = "💧 ${weather.precipitationProbability}%",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFF1C2B3A)
         )
         Text(
             text = "💨 ${weather.windspeedMax} km/h",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFF1C2B3A)
         )
     }
 }
@@ -133,22 +122,22 @@ fun WeatherCompact(weather: DayWeather) {
  * @param label Etiqueta descriptiva.
  */
 @Composable
-fun WeatherStat(
-    emoji: String,
-    value: String,
-    label: String
-) {
+fun WeatherStat(emoji: String, value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = emoji, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = emoji,
+            style = MaterialTheme.typography.bodyLarge
+        )
         Text(
             text = value,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A6DB5)
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
         )
     }
 }

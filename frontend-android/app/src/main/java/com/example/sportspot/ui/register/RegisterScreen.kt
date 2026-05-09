@@ -13,7 +13,7 @@ import com.example.sportspot.R
 import kotlinx.coroutines.delay
 
 /**
- * TEA3 - Pantalla de registre d'un nou usuari client.
+ * Pantalla de registre d'un nou usuari client.
  *
  * Mostra un formulari per crear un nou compte de tipus client.
  *
@@ -99,6 +99,7 @@ fun RegisterScreen(
 
         Button(
             onClick = { viewModel.register(name, password, email) },
+            enabled = uiState !is RegisterUiState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -114,6 +115,7 @@ fun RegisterScreen(
 
         Button(
             onClick = { onBack() },
+            enabled = uiState !is RegisterUiState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -129,17 +131,28 @@ fun RegisterScreen(
 
         // Mostrem missatges segons l'estat actual
         when (uiState) {
-            is RegisterUiState.Loading -> CircularProgressIndicator()
-            is RegisterUiState.Error -> Text(
-                text = (uiState as RegisterUiState.Error).message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
-            )
-            is RegisterUiState.Success -> Text(
-                text = "Usuari donat d'alta correctament!",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
+            is RegisterUiState.Loading -> {
+                Spacer(modifier = Modifier.height(12.dp))
+                CircularProgressIndicator()
+            }
+            is RegisterUiState.Error -> {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = (uiState as RegisterUiState.Error).message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+            is RegisterUiState.Success -> {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Usuari creat correctament! Redirigint al login...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
             else -> {}
         }
     }

@@ -7,7 +7,8 @@ package com.example.sportspot.domain.model
  *
  * @property id Identificador únic de la reserva.
  * @property dateTime Data i hora de la reserva en format ISO (YYYY-MM-DDTHH:MM).
- * @property durationMinutes Durada de la reserva en minuts.
+ * @property durationHours Durada de la reserva en hores.
+ * @property endTime Data i hora de la finalització de la reserva en format ISO (YYYY-MM-DDTHH:MM).
  * @property userName Nom de l'usuari que ha fet la reserva.
  * @property courtName Nom de la pista reservada.
  * @property location Localització de la pista reservada.
@@ -15,7 +16,8 @@ package com.example.sportspot.domain.model
 data class Booking(
     val id: Long,
     val dateTime: String,
-    val durationMinutes: Int,
+    val durationHours: Int,
+    val endTime: String,
     val userName: String,
     val courtName: String,
     val location: String

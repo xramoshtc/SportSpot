@@ -35,6 +35,14 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import com.example.sportspot.data.repository.EventRepository
+import com.example.sportspot.domain.model.Event
+import com.example.sportspot.ui.events.EventActionState
+import com.example.sportspot.ui.events.EventUiState
+import com.example.sportspot.ui.events.EventViewModel
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.any
+
 
 /**
  * Tests unitaris per als ViewModels de perfil, reserves, administració i detall de pista.
@@ -272,7 +280,8 @@ class MyBookingsViewModelTest {
     private val bookingTest = Booking(
         id = 1L,
         dateTime = "2025-06-15T10:00",
-        durationMinutes = 60,
+        durationHours = 1,
+        endTime = "2025-06-15T11:00",
         userName = "jesus",
         courtName = "Pista A",
         location = "Barcelona"
@@ -380,10 +389,10 @@ class MyBookingsViewModelTest {
         whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
         whenever(courtRepository.getMyBookings("token_valid")).thenReturn(emptyList())
 
-        viewModel.updateBooking(1L, "2025-07-01T11:00", 90)
+        viewModel.updateBooking(1L, "2025-07-01T11:00", 1)
         advanceUntilIdle()
 
-        verify(courtRepository).updateBooking("token_valid", 1L, "2025-07-01T11:00", 90)
+        verify(courtRepository).updateBooking("token_valid", 1L, "2025-07-01T11:00", 1)
         verify(courtRepository).getMyBookings("token_valid")
     }
 
@@ -403,6 +412,25 @@ class MyBookingsViewModelTest {
 
         // La reserva amb id=1 hauria de tenir el temps associat
         assertEquals(weather, viewModel.weatherMap.value[1L])
+    }
+
+    /**
+     * Comprova que loadBookings() també carrega les pistes en paral·lel.
+     */
+    @Test
+    fun `loadBookings tambe carrega les pistes en paral·lel`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(courtRepository.getMyBookings("token_valid")).thenReturn(emptyList())
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(
+            Court(1L, "Pista A", "Pàdel", "Barcelona", 15.0, 4)
+        ))
+        whenever(weatherRepository.getWeatherForCityAndDate(any(), any())).thenReturn(null)
+
+        viewModel.loadBookings()
+        advanceUntilIdle()
+
+        verify(courtRepository).getCourts("token_valid")
+        assertEquals(1, viewModel.courts.value.size)
     }
 }
 
@@ -479,10 +507,10 @@ class AdminCourtsViewModelTest {
         whenever(dataStore.tokenFlow).thenReturn(flowOf("admin_token"))
         whenever(courtRepository.getCourts("admin_token")).thenReturn(listOf(pistaTest))
 
-        viewModel.createCourt("Nova Pista", "Tennis", 22.0, "Madrid")
+        viewModel.createCourt("Nova Pista", "Tennis", 22.0, "Madrid", 4)
         advanceUntilIdle()
 
-        verify(courtRepository).createCourt("admin_token", "Nova Pista", "Tennis", 22.0, "Madrid")
+        verify(courtRepository).createCourt("admin_token", "Nova Pista", "Tennis", 22.0, "Madrid", 4)
         verify(courtRepository).getCourts("admin_token")
     }
 
@@ -494,10 +522,10 @@ class AdminCourtsViewModelTest {
         whenever(dataStore.tokenFlow).thenReturn(flowOf("admin_token"))
         whenever(courtRepository.getCourts("admin_token")).thenReturn(listOf(pistaTest))
 
-        viewModel.updateCourt(1L, "Pista Modificada", "Pàdel", 20.0, "Barcelona")
+        viewModel.updateCourt(1L, "Pista Modificada", "Pàdel", 20.0, "Barcelona", 4)
         advanceUntilIdle()
 
-        verify(courtRepository).updateCourt("admin_token", 1L, "Pista Modificada", "Pàdel", 20.0, "Barcelona")
+        verify(courtRepository).updateCourt("admin_token", 1L, "Pista Modificada", "Pàdel", 20.0, "Barcelona", 4)
     }
 
     /**
@@ -552,7 +580,15 @@ class CourtDetailViewModelTest {
     private lateinit var viewModel: CourtDetailViewModel
 
     private val pistaTest = Court(5L, "Pista Central", "Pàdel", "Barcelona", 15.0, 4)
-    private val bookingTest = Booking(10L, "2025-06-15T10:00", 60, "jesus", "Pista Central", "Barcelona")
+    private val bookingTest = Booking(
+        id = 10L,
+        dateTime = "2025-06-15T10:00",
+        durationHours = 1,
+        endTime = "2025-06-15T11:00",
+        userName = "jesus",
+        courtName = "Pista Central",
+        location = "Barcelona"
+    )
 
     /**
      * Configura els mocks i el ViewModel abans de cada test.
@@ -632,7 +668,7 @@ class CourtDetailViewModelTest {
         whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
         whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(pistaTest))
         whenever(
-            courtRepository.createBooking("token_valid", 5L, "2025-06-15T10:00", 60)
+            courtRepository.createBooking("token_valid", 5L, "2025-06-15T10:00", 1)
         ).thenReturn(bookingTest)
 
         // Primer carreguem la pista (l'estat ha de ser Success per poder reservar)
@@ -640,7 +676,7 @@ class CourtDetailViewModelTest {
         advanceUntilIdle()
 
         // Ara fem la reserva
-        viewModel.createBooking(5L, "2025-06-15T10:00", 60)
+        viewModel.createBooking(5L, "2025-06-15T10:00", 1)
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is CourtDetailUiState.BookingSuccess)
@@ -656,13 +692,13 @@ class CourtDetailViewModelTest {
         whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
         whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(pistaTest))
         whenever(
-            courtRepository.createBooking("token_valid", 5L, "2025-06-15T10:00", 60)
+            courtRepository.createBooking("token_valid", 5L, "2025-06-15T10:00", 1)
         ).thenAnswer { throw Exception("Horari no disponible") }
 
         viewModel.loadCourt(5L)
         advanceUntilIdle()
 
-        viewModel.createBooking(5L, "2025-06-15T10:00", 60)
+        viewModel.createBooking(5L, "2025-06-15T10:00", 1)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value as CourtDetailUiState.BookingError
@@ -698,5 +734,278 @@ class CourtDetailViewModelTest {
         advanceUntilIdle()
 
         assertEquals(null, viewModel.weather.value)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EventViewModelTest
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Tests per a [EventViewModel].
+ *
+ * Comprova la càrrega d'esdeveniments, la creació, la inscripció
+ * i l'abandonament. Les dependències es mockegen per no fer crides reals.
+ *
+ * @author Jesús Ramos
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class EventViewModelTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var eventRepository: EventRepository
+    private lateinit var courtRepository: CourtRepository
+    private lateinit var dataStore: DataStoreManager
+    private lateinit var viewModel: EventViewModel
+
+    private val eventTest = Event(
+        id = 1L,
+        title = "Torneig de Pàdel",
+        courtName = "Pista A",
+        organizerName = "jesus",
+        dateTime = "2026-06-15T10:00:00",
+        currentParticipants = 1,
+        maxCapacity = 4,
+        participantNames = listOf("jesus")
+    )
+
+    private val courtTest = Court(1L, "Pista A", "Pàdel", "Barcelona", 15.0, 4)
+
+    /**
+     * Configura els mocks i el ViewModel abans de cada test.
+     */
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+        eventRepository = mock()
+        courtRepository = mock()
+        dataStore = mock()
+        whenever(dataStore.usernameFlow).thenReturn(flowOf("jesus"))
+        viewModel = EventViewModel(eventRepository, courtRepository, dataStore)
+    }
+
+    /**
+     * Restaura el dispatcher original després de cada test.
+     */
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    /**
+     * Comprova que l'estat inicial és Idle.
+     */
+    @Test
+    fun `estat inicial es Idle`() {
+        assertTrue(viewModel.uiState.value is EventUiState.Idle)
+    }
+
+    /**
+     * Comprova que l'actionState inicial és Idle.
+     */
+    @Test
+    fun `actionState inicial es Idle`() {
+        assertTrue(viewModel.actionState.value is EventActionState.Idle)
+    }
+
+    /**
+     * Comprova que loadEvents() transiciona a Success amb la llista d'esdeveniments.
+     */
+    @Test
+    fun `loadEvents transiciona a Success amb la llista d'esdeveniments`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(listOf(eventTest))
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(courtTest))
+
+        viewModel.loadEvents()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as EventUiState.Success
+        assertEquals(1, state.events.size)
+        assertEquals("Torneig de Pàdel", state.events[0].title)
+    }
+
+    /**
+     * Comprova que loadEvents() transiciona a Error quan no hi ha token.
+     */
+    @Test
+    fun `loadEvents transiciona a Error quan no hi ha token`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf(null))
+
+        viewModel.loadEvents()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as EventUiState.Error
+        assertEquals("Sense token", state.message)
+    }
+
+    /**
+     * Comprova que loadEvents() transiciona a Error quan el repositori falla.
+     */
+    @Test
+    fun `loadEvents transiciona a Error quan el repositori falla`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid"))
+            .thenAnswer { throw Exception("Error de xarxa") }
+
+        viewModel.loadEvents()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as EventUiState.Error
+        assertEquals("Error de xarxa", state.message)
+    }
+
+    /**
+     * Comprova que loadEvents() retorna una llista buida quan no hi ha esdeveniments.
+     */
+    @Test
+    fun `loadEvents Success amb llista buida si no hi ha esdeveniments`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(emptyList())
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(emptyList())
+
+        viewModel.loadEvents()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as EventUiState.Success
+        assertTrue(state.events.isEmpty())
+    }
+
+    /**
+     * Comprova que joinEvent() transiciona a JoinSuccess i recarrega els esdeveniments.
+     */
+    @Test
+    fun `joinEvent transiciona a JoinSuccess i recarrega els esdeveniments`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(listOf(eventTest))
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(courtTest))
+
+        viewModel.joinEvent(1L)
+        advanceUntilIdle()
+
+        verify(eventRepository).joinEvent("token_valid", 1L)
+        assertTrue(viewModel.actionState.value is EventActionState.JoinSuccess)
+    }
+
+    /**
+     * Comprova que joinEvent() transiciona a Error quan el servidor rebutja la inscripció.
+     */
+    @Test
+    fun `joinEvent transiciona a Error quan el servidor falla`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.joinEvent("token_valid", 1L))
+            .thenAnswer { throw Exception("Esdeveniment complet") }
+
+        viewModel.joinEvent(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.actionState.value as EventActionState.Error
+        assertEquals("Esdeveniment complet", state.message)
+    }
+
+    /**
+     * Comprova que deleteOrLeaveEvent() transiciona a LeaveSuccess i recarrega.
+     */
+    @Test
+    fun `deleteOrLeaveEvent transiciona a LeaveSuccess i recarrega`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(emptyList())
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(emptyList())
+
+        viewModel.deleteOrLeaveEvent(1L)
+        advanceUntilIdle()
+
+        verify(eventRepository).deleteOrLeaveEvent("token_valid", 1L)
+        assertTrue(viewModel.actionState.value is EventActionState.LeaveSuccess)
+    }
+
+    /**
+     * Comprova que deleteOrLeaveEvent() transiciona a Error quan el servidor falla.
+     */
+    @Test
+    fun `deleteOrLeaveEvent transiciona a Error quan el servidor falla`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.deleteOrLeaveEvent("token_valid", 1L))
+            .thenAnswer { throw Exception("No autoritzat") }
+
+        viewModel.deleteOrLeaveEvent(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.actionState.value as EventActionState.Error
+        assertEquals("No autoritzat", state.message)
+    }
+
+    /**
+     * Comprova que createEvent() transiciona a CreateSuccess i recarrega els esdeveniments.
+     */
+    @Test
+    fun `createEvent transiciona a CreateSuccess i recarrega els esdeveniments`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(listOf(eventTest))
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(courtTest))
+
+        viewModel.createEvent("Torneig de Pàdel", 1L, "2026-06-15T10:00:00")
+        advanceUntilIdle()
+
+        verify(eventRepository).createEvent("token_valid", "Torneig de Pàdel", 1L, "2026-06-15T10:00:00")
+        assertTrue(viewModel.actionState.value is EventActionState.CreateSuccess)
+    }
+
+    /**
+     * Comprova que createEvent() transiciona a Error quan el servidor falla.
+     */
+    @Test
+    fun `createEvent transiciona a Error quan el servidor falla`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(
+            eventRepository.createEvent("token_valid", "Torneig de Pàdel", 1L, "2026-06-15T10:00:00")
+        ).thenAnswer { throw Exception("Pista no disponible") }
+
+        viewModel.createEvent("Torneig de Pàdel", 1L, "2026-06-15T10:00:00")
+        advanceUntilIdle()
+
+        val state = viewModel.actionState.value as EventActionState.Error
+        assertEquals("Pista no disponible", state.message)
+    }
+
+    /**
+     * Comprova que resetActionState() torna l'actionState a Idle.
+     */
+    @Test
+    fun `resetActionState torna l'actionState a Idle`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(eventRepository.getEvents("token_valid")).thenReturn(emptyList())
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(emptyList())
+
+        viewModel.joinEvent(1L)
+        advanceUntilIdle()
+
+        viewModel.resetActionState()
+
+        assertTrue(viewModel.actionState.value is EventActionState.Idle)
+    }
+
+    /**
+     * Comprova que loadCourts() omple la llista de pistes del ViewModel.
+     */
+    @Test
+    fun `loadCourts omple la llista de pistes`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(courtRepository.getCourts("token_valid")).thenReturn(listOf(courtTest))
+
+        viewModel.loadCourts()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.courts.value.size)
+        assertEquals("Pista A", viewModel.courts.value[0].name)
+    }
+
+    /**
+     * Comprova que el nom d'usuari es carrega correctament en inicialitzar el ViewModel.
+     */
+    @Test
+    fun `currentUsername es carrega correctament en inicialitzar`() = runTest {
+        advanceUntilIdle()
+        assertEquals("jesus", viewModel.currentUsername.value)
     }
 }

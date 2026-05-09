@@ -395,5 +395,20 @@ class CourtsViewModelTest {
         assertTrue(state.courts.isEmpty())
     }
 
+    /**
+     * Comprova que loadCourts() mostra Error desconegut si l'excepció no té missatge.
+     */
+    @Test
+    fun `loadCourts mostra Error desconegut si l'excepcio no te missatge`() = runTest {
+        whenever(dataStore.tokenFlow).thenReturn(flowOf("token_valid"))
+        whenever(courtRepository.getCourts("token_valid"))
+            .thenAnswer { throw Exception() }
+
+        viewModel.loadCourts()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as CourtsUiState.Error
+        assertEquals("Error desconegut", state.message)
+    }
 
 }

@@ -12,6 +12,8 @@ import retrofit2.http.Path
 /**
  * Petició per fer login al servidor.
  *
+ * @author Jesús Ramos
+ *
  * @property user Nom d'usuari o correu.
  * @property password Contrasenya en text pla.
  */
@@ -23,6 +25,8 @@ data class LoginRequest(
 /**
  * Petició per fer logout al servidor.
  *
+ * @author Jesús Ramos
+ *
  * @property token Token de sessió que s'ha de tancar.
  */
 data class LogoutRequest(
@@ -31,6 +35,8 @@ data class LogoutRequest(
 
 /**
  * Resposta del servidor després d'un intent de login.
+ *
+ * @author Jesús Ramos
  *
  * @property success Indica si l'operació ha estat correcte.
  * @property message Missatge descriptiu del servidor.
@@ -51,8 +57,10 @@ data class LoginResponse(
 /**
  * Resposta del servidor a una petició de logout.
  *
+ * @author Jesús Ramos
+ *
  * @property success Indica si l'operació s'ha considerat exitosa.
- * @property message Missatge descriptiu retornat pel servidor
+ * @property message Missatge descriptiu retornat pel servidor.
  * @property resultCode Codi numèric que representa l'estat de la resposta (p. ex. -1, 200).
  * @property sessionToken Token de sessió retornat (pot estar buit si la sessió ja està tancada).
  * @property role Rol de l'usuari associat a la sessió (pot estar buit).
@@ -67,6 +75,8 @@ data class LogoutResponse(
 
 /**
  * Petició per registrar un nou usuari client sense token.
+ *
+ * @author Jesús Ramos
  *
  * @property name Nom d'usuari.
  * @property password Contrasenya.
@@ -83,6 +93,8 @@ data class RegisterRequest(
  *
  * Aquest objecte s'envia al servidor en una petició PUT per modificar
  * les dades d'un usuari existent.
+ *
+ * @author Jesús Ramos
  *
  * @property name Nou nom de l'usuari.
  * @property password Nova contrasenya de l'usuari.
@@ -101,6 +113,8 @@ data class UpdateUserRequest(
  *
  * Aquesta resposta es retorna després d'operacions com la consulta,
  * modificació o creació d'un usuari.
+ *
+ * @author Jesús Ramos
  *
  * @property id Identificador únic de l'usuari.
  * @property name Nom de l'usuari.
@@ -124,6 +138,8 @@ data class UserResponse(
  * Aquest objecte es retorna en consultes de pistes disponibles o
  * després de crear o modificar una pista.
  *
+ * @author Jesús Ramos
+ *
  * @property id Identificador únic de la pista.
  * @property name Nom de la pista.
  * @property type Tipus d'esport associat.
@@ -143,30 +159,32 @@ data class CourtResponse(
 /**
  * Petició per crear una nova pista esportiva.
  *
+ * @author Jesús Ramos
+ *
  * @property name Nom de la pista.
  * @property type Tipus d'esport.
  * @property pricePerHour Preu per hora en euros.
  * @property location Localització de la pista.
- *
- * @author Jesús Ramos
+ * @property capacity Aforament de la pista.
  */
 data class CreateCourtRequest(
     val name: String,
     val type: String,
     val pricePerHour: Double,
-    val location: String
+    val location: String,
+    val capacity: Int = 0
 )
 
 /**
  * Petició per modificar una pista esportiva existent.
+ *
+ * @author Jesús Ramos
  *
  * @property name Nou nom de la pista.
  * @property type Nou tipus d'esport.
  * @property pricePerHour Nou preu per hora en euros.
  * @property location Nova localització de la pista.
  * @property capacity Aforament de la pista.
- *
- * @author Jesús Ramos
  */
 data class UpdateCourtRequest(
     val name: String,
@@ -176,29 +194,32 @@ data class UpdateCourtRequest(
     val capacity: Int = 0
 )
 
-
 /**
  * Petició per crear una nova reserva.
  *
+ * @author Jesús Ramos
+ *
  * @property courtId ID de la pista a reservar.
  * @property dateTime Data i hora en format ISO "YYYY-MM-DDTHH:MM".
- * @property durationMinutes Durada en minuts.
+ * @property durationHours Durada en hores.
  */
 data class CreateBookingRequest(
     val courtId: Long,
     val dateTime: String,
-    val durationMinutes: Int
+    val durationHours: Int
 )
 
 /**
  * Petició per modificar una reserva existent.
  *
+ * @author Jesús Ramos
+ *
  * @property dateTime Nova data i hora en format ISO.
- * @property durationMinutes Nova durada en minuts.
+ * @property durationHours Durada en hores.
  */
 data class UpdateBookingRequest(
     val dateTime: String,
-    val durationMinutes: Int
+    val durationHours: Int
 )
 
 /**
@@ -206,9 +227,12 @@ data class UpdateBookingRequest(
  *
  * Inclou informació de la pista i de l'usuari per facilitar-ne la visualització.
  *
+ * @author Jesús Ramos
+ *
  * @property id Identificador únic de la reserva.
  * @property dateTime Data i hora de la reserva.
- * @property durationMinutes Durada total en minuts.
+ * @property durationHours Durada total en hores.
+ * @property endTime Data i hora de la finalització de la reserva.
  * @property userName Nom de l'usuari que ha fet la reserva.
  * @property courtName Nom de la pista reservada.
  * @property location Ubicació de la pista.
@@ -216,7 +240,8 @@ data class UpdateBookingRequest(
 data class BookingResponse(
     val id: Long,
     val dateTime: String,
-    val durationMinutes: Int,
+    val durationHours: Int,
+    val endTime: String,
     val userName: String,
     val courtName: String,
     val location: String
@@ -225,11 +250,11 @@ data class BookingResponse(
 /**
  * Cos de la petició per crear un nou esdeveniment.
  *
+ * @author Jesús Ramos
+ *
  * @property title Títol de l'esdeveniment.
  * @property courtId Identificador de la pista on es realitzarà.
  * @property dateTime Data i hora en format ISO-8601 (ex: "2026-05-10T10:00:00").
- *
- * @author Jesús Ramos
  */
 data class CreateEventRequest(
     val title: String,
@@ -242,19 +267,22 @@ data class CreateEventRequest(
  *
  * Els camps null no es modifiquen al servidor.
  *
+ * @author Jesús Ramos
+ *
  * @property title Nou títol de l'esdeveniment, o null per no modificar.
  * @property courtId Nou ID de pista, o null per no modificar.
  * @property dateTime Nova data i hora, o null per no modificar.
- *
- * @author Jesús Ramos
  */
 data class UpdateEventRequest(
     val title: String? = null,
     val courtId: Long? = null,
     val dateTime: String? = null
 )
+
 /**
  * Resposta del servidor que representa un esdeveniment.
+ *
+ * @author Jesús Ramos
  *
  * @property id Identificador únic de l'esdeveniment.
  * @property title Títol de l'esdeveniment.
@@ -264,8 +292,6 @@ data class UpdateEventRequest(
  * @property currentParticipants Nombre actual de participants.
  * @property maxCapacity Capacitat màxima de la pista.
  * @property participantNames Llista de noms dels participants inscrits.
- *
- * @author Jesús Ramos
  */
 data class EventResponse(
     val id: Long,
@@ -334,7 +360,6 @@ interface AuthApi {
      * @param name Nom de l'usuari que es vol modificar.
      * @param token Token de sessió necessari per validar la petició.
      * @param request Objecte amb les noves dades de l'usuari.
-     *
      * @return Resposta del servidor deserialitzada a UserResponse.
      */
     @PUT("api/users/{name}")
@@ -374,6 +399,8 @@ interface AuthApi {
     /**
      * Retorna la llista de totes les pistes esportives disponibles.
      *
+     * @author Jesús Ramos
+     *
      * @param token Token de sessió per autenticar la petició.
      * @return Llista d'objectes [CourtResponse].
      */
@@ -384,6 +411,8 @@ interface AuthApi {
 
     /**
      * Crea una nova reserva per a l'usuari autenticat.
+     *
+     * @author Jesús Ramos
      *
      * @param token Token de sessió.
      * @param request Dades de la reserva.
@@ -398,6 +427,8 @@ interface AuthApi {
     /**
      * Retorna totes les reserves de l'usuari autenticat.
      *
+     * @author Jesús Ramos
+     *
      * @param token Token de sessió.
      * @return Llista de [BookingResponse].
      */
@@ -408,6 +439,8 @@ interface AuthApi {
 
     /**
      * Cancel·la una reserva pel seu ID.
+     *
+     * @author Jesús Ramos
      *
      * @param id Identificador de la reserva a cancel·lar.
      * @param token Token de sessió.
@@ -420,6 +453,8 @@ interface AuthApi {
 
     /**
      * Modifica l'horari o durada d'una reserva existent.
+     *
+     * @author Jesús Ramos
      *
      * @param id Identificador de la reserva a modificar.
      * @param token Token de sessió.
@@ -510,9 +545,9 @@ interface AuthApi {
     /**
      * Crida PUT que modifica un esdeveniment existent.
      *
-     * @author Jesús Ramos
-     *
      * Només l'organitzador o un admin pot modificar l'esdeveniment.
+     *
+     * @author Jesús Ramos
      *
      * @param token Token de sessió.
      * @param id Identificador de l'esdeveniment a modificar.
@@ -541,12 +576,12 @@ interface AuthApi {
     )
 
     /**
-     * Crida DELETE que elimina un esdeveniment o abandona'l.
-     *
-     * @author Jesús Ramos
+     * Crida DELETE que elimina un esdeveniment o l'abandona.
      *
      * Si l'usuari és l'organitzador o admin, elimina l'esdeveniment.
      * Si és un participant, l'abandona.
+     *
+     * @author Jesús Ramos
      *
      * @param token Token de sessió.
      * @param id Identificador de l'esdeveniment.
@@ -557,5 +592,19 @@ interface AuthApi {
         @Path("id") id: Long
     ): Response<Unit>
 
-}
+    /**
+     * Retorna les reserves existents d'una pista concreta.
+     *
+     * @author Jesús Ramos
+     *
+     * @param token Token de sessió.
+     * @param id ID de la pista.
+     * @return Llista de [BookingResponse].
+     */
+    @GET("api/courts/{id}/bookings")
+    suspend fun getCourtBookings(
+        @Header("Session-Token") token: String,
+        @Path("id") id: Long
+    ): List<BookingResponse>
 
+}

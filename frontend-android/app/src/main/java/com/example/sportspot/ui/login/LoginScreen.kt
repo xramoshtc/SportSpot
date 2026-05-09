@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.material3.CircularProgressIndicator
 import com.example.sportspot.R
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
  *
  * @param onLoginSuccess Funció que s'executa quan l'inici de sessió és correcte.
  *        Rep un objecte [User] amb la informació de la sessió.
+ * @param onNavigateToRegister Funció per navegar a la pantalla de registre.
  */
 @SuppressLint("ContextCastToActivity")
 @Composable
@@ -92,7 +94,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contrassenya") },
+            label = { Text("Contrasenya") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
@@ -103,6 +105,7 @@ fun LoginScreen(
         // Botó que demana al ViewModel fer el login
         Button(
             onClick = { vm.login(user, password) },
+            enabled = state !is LoginUiState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -115,39 +118,38 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Spacer(modifier = Modifier.height(12.dp))
 
-        // TEA3 - Botó per anar a la pantalla de registre
+        // Botó per navegar a la pantalla de registre
         TextButton(
             onClick = { onNavigateToRegister() }
         ) {
             Text(
                 text = "Encara no tens compte? Registra't",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )
         }
 
         // Mostrem missatges segons l'estat actual
         when (state) {
-            is LoginUiState.Loading -> Text(
-                "Carregant...",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            is LoginUiState.Error -> Text(
-                "Error: ${(state as LoginUiState.Error).message}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
-            )
+            is LoginUiState.Loading -> {
+                Spacer(modifier = Modifier.height(12.dp))
+                CircularProgressIndicator()
+            }
+            is LoginUiState.Error -> {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = (state as LoginUiState.Error).message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
             is LoginUiState.Success -> {
-                // Si l'estat és Success, obtenim l'usuari i cridem la funció de callback
                 val loggedUser = (state as LoginUiState.Success).user
                 onLoginSuccess(loggedUser)
             }
-            LoginUiState.Idle -> {
-                // Estat inicial, no fem res
-            }
+            LoginUiState.Idle -> {}
         }
 
         // Botó per sortir de l'app

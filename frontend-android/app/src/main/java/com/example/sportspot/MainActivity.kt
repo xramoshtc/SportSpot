@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,8 +73,9 @@ class MainActivity : ComponentActivity() {
                 // Observem el token i el rol com un State
                 val token by sessionVm.token.collectAsState()
                 val role by sessionVm.role.collectAsState()
-                android.util.Log.d("SESSION", "token=$token role=$role")
 
+                // En MainActivity, después de collectAsState()
+                android.util.Log.d("SESSION_DEBUG", "token='$token' role='$role'")
                 if (token == SessionViewModel.LOADING || role == SessionViewModel.LOADING) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -84,11 +86,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 } else {
-                    val startDestination = when {
-                        token.isNullOrBlank() -> AppRoute.Login.route
-                        role == "admin" -> AppRoute.Admin.route
-                        role == "user" -> AppRoute.Client.route
-                        else -> AppRoute.Login.route
+                    val startDestination = remember(token, role) {
+                        when {
+                            token.isNullOrBlank() -> AppRoute.Login.route
+                            role == "admin"       -> AppRoute.Admin.route
+                            role == "client"        -> AppRoute.Client.route
+                            else                  -> AppRoute.Login.route
+                        }
                     }
 
                     NavHost(
@@ -148,7 +152,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        // TEA3 - Pantalla de perfil. Al guardar o tornar, es torna a la pantalla del client.
+                        // Pantalla de perfil. Al guardar o tornar, es torna a la pantalla del client.
                         composable(AppRoute.Profile.route) {
                             ProfileScreen(
                                 onBack = {
@@ -161,7 +165,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        // TEA3 - Pantalla de registre. Al completar, torna al login.
+                        // Pantalla de registre. Al completar, torna al login.
                         composable(AppRoute.Register.route) {
                             RegisterScreen(
                                 onRegisterSuccess = {
@@ -190,8 +194,8 @@ class MainActivity : ComponentActivity() {
                                 courtId = courtId,
                                 onBack = { navController.popBackStack() },
                                 onBookingConfirmed = {
-                                    navController.navigate(AppRoute.Courts.route) {
-                                        popUpTo(AppRoute.Courts.route) { inclusive = true }
+                                    navController.navigate(AppRoute.Client.route) {
+                                        popUpTo(AppRoute.Client.route) { inclusive = true }
                                     }
                                 }
                             )

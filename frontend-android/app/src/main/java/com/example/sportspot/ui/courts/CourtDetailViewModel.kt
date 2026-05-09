@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import com.example.sportspot.data.repository.WeatherRepository
 import com.example.sportspot.domain.model.DayWeather
 
+
 /**
  * ViewModel per la pantalla de detall d'una pista.
  *
@@ -24,11 +25,14 @@ import com.example.sportspot.domain.model.DayWeather
  *
  * @param repository Repositori que gestiona pistes i reserves.
  * @param dataStore Manager per accedir al token emmagatzemat localment.
+ * @param weatherRepository Repositori que gestiona les consultes meteorològiques.
  */
 class CourtDetailViewModel(
     private val repository: CourtRepository,
     private val dataStore: DataStoreManager,
     private val weatherRepository: WeatherRepository
+
+
 ) : ViewModel() {
 
     /**
@@ -45,9 +49,47 @@ class CourtDetailViewModel(
      */
     val uiState: StateFlow<CourtDetailUiState> = _uiState
 
+    /**
+     * Conjunt intern mutable de franges horàries ocupades.
+     *
+     * @author Jesús Ramos
+     */
+    private val _occupiedSlots = MutableStateFlow<Set<String>>(emptySet())
 
+    /**
+     * Conjunt públic de franges horàries ocupades per a la data seleccionada.
+     *
+     * @author Jesús Ramos
+     */
+    val occupiedSlots: StateFlow<Set<String>> = _occupiedSlots
+
+    /**
+     * Previsió meteorològica interna mutable per al dia seleccionat.
+     *
+     * @author Jesús Ramos
+     */
     private val _weather = MutableStateFlow<DayWeather?>(null)
+
+    /**
+     * Previsió meteorològica pública per al dia seleccionat.
+     *
+     * @author Jesús Ramos
+     */
     val weather: StateFlow<DayWeather?> = _weather
+
+    /**
+     * Indicador intern de si s'estan carregant les franges ocupades.
+     *
+     * @author Jesús Ramos
+     */
+    private val _loadingSlots = MutableStateFlow(false)
+
+    /**
+     * Indicador públic de si s'estan carregant les franges ocupades.
+     *
+     * @author Jesús Ramos
+     */
+    val loadingSlots: StateFlow<Boolean> = _loadingSlots
 
     /**
      * Carrega les dades d'una pista concreta de la llista de pistes disponibles.
@@ -85,9 +127,9 @@ class CourtDetailViewModel(
      *
      * @param courtId ID de la pista a reservar.
      * @param dateTime Data i hora en format ISO (YYYY-MM-DDTHH:MM).
-     * @param durationMinutes Durada de la reserva en minuts.
+     * @param durationHours Durada de la reserva en hores.
      */
-    fun createBooking(courtId: Long, dateTime: String, durationMinutes: Int) {
+    fun createBooking(courtId: Long, dateTime: String, durationHours: Int) {
         val currentCourt = when (val s = _uiState.value) {
             is CourtDetailUiState.Success -> s.court
             is CourtDetailUiState.BookingError -> s.court
@@ -96,13 +138,43 @@ class CourtDetailViewModel(
         viewModelScope.launch {
             try {
                 val token = dataStore.tokenFlow.first() ?: throw Exception("Sense token")
-                repository.createBooking(token, courtId, dateTime, durationMinutes)
+                repository.createBooking(token, courtId, dateTime, durationHours)
                 _uiState.value = CourtDetailUiState.BookingSuccess(currentCourt)
             } catch (e: Exception) {
+                // Llegim el missatge exacte que retorna el backend
+                val errorBody = (e as? retrofit2.HttpException)
+                    ?.response()?.errorBody()?.string()
+                val errorMessage = if (!errorBody.isNullOrBlank()) errorBody
+                else e.message ?: "Error en la reserva"
                 _uiState.value = CourtDetailUiState.BookingError(
                     court = currentCourt,
-                    message = e.message ?: "Error en la reserva"
+                    message = errorMessage
                 )
+            }
+        }
+    }
+
+    /**
+     * Carrega les franges horàries ocupades d'una pista per a un dia concret.
+     *
+     * @author Jesús Ramos
+     *
+     * @param courtId ID de la pista.
+     * @param date Data en format ISO (YYYY-MM-DD).
+     */
+    fun loadOccupiedSlots(courtId: Long, date: String) {
+        viewModelScope.launch {
+            _loadingSlots.value = true
+            _occupiedSlots.value = emptySet()
+            try {
+                val token = dataStore.tokenFlow.first() ?: return@launch
+                val slots = repository.getOccupiedSlots(token, courtId, date)
+                _occupiedSlots.value = slots
+            } catch (e: Exception) {
+                android.util.Log.e("OCCUPIED_SLOTS", "Error: ${e.message}", e)
+                _occupiedSlots.value = emptySet()
+            } finally {
+                _loadingSlots.value = false
             }
         }
     }

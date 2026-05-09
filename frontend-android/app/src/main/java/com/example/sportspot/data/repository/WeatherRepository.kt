@@ -37,7 +37,6 @@ class WeatherRepository {
         // Log per veure les coordenades que s'estan utilitzant
         android.util.Log.d("WEATHER", "Ciutat: $city → lat: ${geoResult.latitude}, lon: ${geoResult.longitude}, nom trobat: ${geoResult.name}")
 
-
         // Pas 2: previsió meteorològica per coordenades
         val forecast = weatherApi.getForecast(
             latitude = geoResult.latitude,
@@ -46,6 +45,7 @@ class WeatherRepository {
 
         // Pas 3: filtrem el dia que ens interessa
         val index = forecast.daily.time.indexOf(date)
+        android.util.Log.d("WEATHER_CODE", "date=$date index=$index codes=${forecast.daily.weathercode}")
         if (index == -1) return null
 
         return DayWeather(

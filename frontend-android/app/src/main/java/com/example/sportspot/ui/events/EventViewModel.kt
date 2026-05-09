@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 class EventViewModel(
     private val repository: EventRepository,
     private val courtRepository: CourtRepository,
-    private val dataStore: DataStoreManager
+    private val dataStore: DataStoreManager,
 ) : ViewModel() {
 
     /**
@@ -110,7 +110,6 @@ class EventViewModel(
      */
     val courts: StateFlow<List<Court>> = _courts
 
-    // Inicialització
     init {
         // Carreguem el nom d'usuari en crear el ViewModel perquè estigui
         // disponible abans que la UI intenti mostrar les targetes d'events.
@@ -138,7 +137,7 @@ class EventViewModel(
      *
      * @author Jesús Ramos
      */
-    private fun loadCourts() {
+    fun loadCourts() {
         viewModelScope.launch {
             try {
                 val token = dataStore.tokenFlow.first() ?: return@launch
@@ -255,7 +254,6 @@ class EventViewModel(
         _actionState.value = EventActionState.Idle
     }
 
-    // Factory
     companion object {
         /**
          * Factory per crear una instància de [EventViewModel] amb totes les dependències.

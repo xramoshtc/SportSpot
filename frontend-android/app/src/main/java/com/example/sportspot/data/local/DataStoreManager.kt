@@ -23,7 +23,8 @@
          *
          * Actualment s'utilitza per guardar, llegir i esborrar el token d'autenticació.
          *
-
+         * @author Jesús Ramos
+         *
          * @param context Context de l'aplicació, necessari per accedir al DataStore.
          */
         class DataStoreManager(private val context: Context) {

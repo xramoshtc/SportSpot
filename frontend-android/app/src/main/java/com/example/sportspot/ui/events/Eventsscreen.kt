@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.SportsTennis
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,7 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sportspot.domain.model.Court
 import com.example.sportspot.domain.model.Event
+import com.example.sportspot.ui.utils.courtTypeIcon
 import java.util.Calendar
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.Person
 
 /**
  * Pantalla principal d'esdeveniments esportius.
@@ -38,10 +41,10 @@ import java.util.Calendar
  * Mostra la llista d'esdeveniments actius amb targetes visuals que inclouen
  * la informació de la pista, la data, els participants i la barra d'ocupació.
  *
+ * @author Jesús Ramos
+ *
  * @param onBack Funció per tornar a la pantalla anterior.
  * @param viewModel ViewModel que gestiona l'estat i les accions.
- *
- * @author Jesús Ramos
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,21 +72,40 @@ fun EventsScreen(
     // Snackbar per mostrar missatges de resultat de les accions
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Mapa de nom de pista → tipus, per obtenir la icona correcta
+    val courtTypeMap = courts.associate { it.name to it.type }
+
+    // Mapa de nom de pista → tipus, per obtenir la icona correcta
+    val courtLocationMap = courts.associate { it.name to it.location }
+
+    // Estat del filtre seleccionat — "Tots" per defecte
+    var selectedFilter by remember { mutableStateOf("Apuntat") }
+
+    // Opcions de filtre derivades de les pistes carregades + "Tots" al davant
+    val filterOptions = remember(courts) {
+        listOf("Apuntat", "Tots") + courts.map { it.type }.distinct().sorted()
+    }
+
     // Carreguem els esdeveniments (i les pistes en paral·lel) en entrar a la pantalla
     LaunchedEffect(Unit) {
         viewModel.loadEvents()
     }
 
-    // Gestionem els resultats de les accions (join, leave, create)
+    // Canviem a la pestanya "Apuntat" en apuntar-se, i refresquem en desapuntar-se
     LaunchedEffect(actionState) {
         when (actionState) {
             is EventActionState.JoinSuccess -> {
+                selectedFilter = "Apuntat"
                 snackbarHostState.showSnackbar("T'has apuntat a l'esdeveniment!")
                 viewModel.resetActionState()
+
             }
             is EventActionState.LeaveSuccess -> {
+                selectedFilter = "Apuntat"
                 snackbarHostState.showSnackbar("Has abandonat l'esdeveniment.")
                 viewModel.resetActionState()
+
+
             }
             is EventActionState.CreateSuccess -> {
                 showCreateDialog = false
@@ -105,31 +127,40 @@ fun EventsScreen(
                 title = {
                     Text(
                         text = "Esdeveniments",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C2B3A)
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Tornar")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tornar",
+                            tint = Color(0xFF1C2B3A)
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         },
         //Botó flotant per crear un nou esdeveniment
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = Color(0xFF4F7AA3)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Crear esdeveniment",
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = Color.White
                 )
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
 
         Box(
@@ -141,7 +172,10 @@ fun EventsScreen(
 
                 //Carregant
                 is EventUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFF4F7AA3)
+                    )
                 }
 
                 //Error
@@ -152,12 +186,19 @@ fun EventsScreen(
                     ) {
                         Text(
                             text = "No s'han pogut carregar els esdeveniments",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.error
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(onClick = { viewModel.loadEvents() }) {
-                            Text("Tornar a intentar")
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.loadEvents() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4F7AA3),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("Tornar a intentar", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -166,47 +207,133 @@ fun EventsScreen(
                 is EventUiState.Success -> {
                     val events = (uiState as EventUiState.Success).events
 
-                    if (events.isEmpty()) {
-                        // Estat buit. cap esdeveniment actiu
-                        Column(
-                            modifier = Modifier.align(Alignment.Center),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "🏟️",
-                                style = MaterialTheme.typography.displayMedium
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Cap esdeveniment actiu",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Crea el primer amb el botó +",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                            )
-                        }
-                    } else {
-                        LazyColumn(
+                    // Aplica el filtre pel tipus de pista o per inscripció, ordenats per data
+                    val filteredEvents = when (selectedFilter) {
+                        "Apuntat" -> events
+                            .filter { event ->
+                                currentUsername != null &&
+                                        event.participantNames.contains(currentUsername)
+                            }
+                            .sortedBy { it.dateTime }
+                        "Tots" -> events.sortedBy { it.dateTime }
+                        else -> events
+                            .filter { event ->
+                                val type = courtTypeMap[event.courtName] ?: ""
+                                type.contains(selectedFilter, ignoreCase = true) &&
+                                        !(currentUsername != null && event.participantNames.contains(currentUsername))
+                            }
+                            .sortedBy { it.dateTime }
+                    }
+
+                    Column(modifier = Modifier.fillMaxSize()) {
+
+                        // Franja de filtres horitzontal
+                        Row(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
-                            contentPadding = PaddingValues(vertical = 16.dp)
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(horizontal = 20.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(events, key = { it.id }) { event ->
-                                EventCard(
-                                    event = event,
-                                    currentUsername = currentUsername,
-                                    onJoin  = { eventToJoin  = event },
-                                    onLeave = { eventToLeave = event }
+                            filterOptions.forEach { filter ->
+                                val isSelected = filter == selectedFilter
+                                val isApuntat = filter == "Apuntat"
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedFilter = filter },
+                                    label = {
+                                        Text(
+                                            text = filter,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = if (isApuntat) Color(0xFF2E7D32) else Color(0xFF4F7AA3),
+                                        selectedLabelColor = Color.White,
+                                        containerColor = if (isApuntat) Color(0xFF2E7D32).copy(alpha = 0.12f)
+                                        else Color(0xFFE8F0F8),
+                                        labelColor = if (isApuntat) Color(0xFF2E7D32) else Color(0xFF1C2B3A)
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        selectedBorderColor = Color.Transparent,
+                                        borderColor = if (isApuntat) Color(0xFF2E7D32).copy(alpha = 0.5f)
+                                        else Color(0xFF4F7AA3).copy(alpha = 0.4f)
+                                    )
                                 )
                             }
-                            //Espai extra al final per no tapar l'últim element amb el FAB
-                            item { Spacer(modifier = Modifier.height(80.dp)) }
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = Color(0xFF1C2B3A).copy(alpha = 0.1f)
+                        )
+
+                        if (filteredEvents.isEmpty()) {
+                            // Estat buit amb filtre actiu
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .wrapContentSize(Alignment.Center),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = if (selectedFilter == "Apuntat") "🏅" else "🏟️",
+                                    style = MaterialTheme.typography.displayMedium
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = if (selectedFilter == "Apuntat")
+                                        "Encara no estàs apuntat a cap esdeveniment."
+                                    else if (selectedFilter == "Tots") "Cap esdeveniment actiu"
+                                    else "Cap esdeveniment de $selectedFilter",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color(0xFF1C2B3A).copy(alpha = 0.45f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 24.dp)
+                                )
+                                if (selectedFilter == "Apuntat") {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Cerca el teu esport favorit des de l'apartat superior i competeix amb altres.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFF1C2B3A).copy(alpha = 0.35f),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        modifier = Modifier.padding(horizontal = 24.dp)
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Crea el primer amb el botó +",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFF1C2B3A).copy(alpha = 0.35f)
+                                    )
+                                }
+                            }
+                        } else {
+                            // Llista d'esdeveniments filtrats
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 20.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp),
+                                contentPadding = PaddingValues(vertical = 16.dp)
+                            ) {
+                                items(filteredEvents, key = { it.id }) { event ->
+                                    EventCard(
+                                        event = event,
+                                        courtType = courtTypeMap[event.courtName] ?: "",
+                                        courtLocation = courtLocationMap[event.courtName] ?: "",
+                                        currentUsername = currentUsername,
+                                        onJoin  = { eventToJoin  = event },
+                                        onLeave = { eventToLeave = event }
+                                    )
+                                }
+                                //Espai extra al final per no tapar l'últim element amb el FAB
+                                item { Spacer(modifier = Modifier.height(80.dp)) }
+                            }
                         }
                     }
                 }
@@ -223,7 +350,7 @@ fun EventsScreen(
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = Color(0xFFE8F0F8)
                     ),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
@@ -232,8 +359,15 @@ fun EventsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        Text("Processant...", style = MaterialTheme.typography.bodyMedium)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color(0xFF4F7AA3)
+                        )
+                        Text(
+                            "Processant...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF1C2B3A)
+                        )
                     }
                 }
             }
@@ -244,6 +378,7 @@ fun EventsScreen(
     eventToJoin?.let { event ->
         JoinConfirmDialog(
             event = event,
+            courtType = courtTypeMap[event.courtName] ?: "",
             onConfirm = {
                 viewModel.joinEvent(event.id)
                 eventToJoin = null
@@ -256,6 +391,7 @@ fun EventsScreen(
     eventToLeave?.let { event ->
         LeaveConfirmDialog(
             event = event,
+            currentUsername = currentUsername,   // <- nou
             onConfirm = {
                 viewModel.deleteOrLeaveEvent(event.id)
                 eventToLeave = null
@@ -276,21 +412,23 @@ fun EventsScreen(
     }
 }
 
-
-// EventCard
 /**
  * Targeta visual que representa un esdeveniment a la llista.
  *
+ * @author Jesús Ramos
+ *
  * @param event Dades de l'esdeveniment a mostrar.
+ * @param courtLocation Localització de la pista, obtinguda del mapa de pistes carregades.
+ * @param courtType Tipus de la pista, obtingut del mapa de pistes carregades.
  * @param currentUsername Nom de l'usuari autenticat, per detectar si ja és participant.
  * @param onJoin Funció que obre el diàleg de confirmació d'inscripció.
  * @param onLeave Funció que obre el diàleg de confirmació d'abandonament.
- *
- * @author Jesús Ramos
  */
 @Composable
 fun EventCard(
     event: Event,
+    courtLocation: String,
+    courtType: String,
     currentUsername: String?,
     onJoin: () -> Unit,
     onLeave: () -> Unit
@@ -303,7 +441,7 @@ fun EventCard(
     val progressColor = when {
         event.isFull       -> MaterialTheme.colorScheme.error
         event.isAlmostFull -> Color(0xFFF57C00) // taronja
-        else               -> MaterialTheme.colorScheme.primary
+        else               -> Color(0xFF4F7AA3)
     }
 
     val occupancyFraction = if (event.maxCapacity > 0)
@@ -315,7 +453,7 @@ fun EventCard(
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color(0xFFE8F0F8)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -330,7 +468,7 @@ fun EventCard(
                     text = event.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color(0xFF1C2B3A),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -347,10 +485,10 @@ fun EventCard(
                     ) {
                         Text(
                             text = "🔥 Quasi ple!",
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFF57C00),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                         )
                     }
                 }
@@ -366,10 +504,10 @@ fun EventCard(
                     ) {
                         Text(
                             text = "Complet",
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                         )
                     }
                 }
@@ -377,38 +515,56 @@ fun EventCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            //Pista
+            //Pista — icona dinàmica segons el tipus de pista
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.SportsTennis,
+                    imageVector = courtTypeIcon(courtType),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF4F7AA3),
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = event.courtName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF4F7AA3),
                     fontWeight = FontWeight.Medium
                 )
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            //Localització
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = Color(0xFF4F7AA3),
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = courtLocation,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF4F7AA3),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
             //Data i hora
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF1C2B3A).copy(alpha = 0.45f),
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = formatEventDateTime(event.dateTime),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.65f)
                 )
             }
 
@@ -417,21 +573,21 @@ fun EventCard(
             //Organitzador
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.LocationOn,
+                    imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF1C2B3A).copy(alpha = 0.45f),
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Organitzat per ${event.organizerName}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            HorizontalDivider(color = Color(0xFF1C2B3A).copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(12.dp))
 
             //Participants
@@ -442,15 +598,15 @@ fun EventCard(
                 Icon(
                     imageVector = Icons.Default.Group,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.size(18.dp)
+                    tint = Color(0xFF1C2B3A).copy(alpha = 0.55f),
+                    modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "${event.currentParticipants}/${event.maxCapacity} participants",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFF1C2B3A)
                 )
             }
 
@@ -460,8 +616,8 @@ fun EventCard(
             if (event.participantNames.isNotEmpty()) {
                 Text(
                     text = event.participantNames.joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.45f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -474,7 +630,7 @@ fun EventCard(
                 progress = { occupancyFraction },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp),
+                    .height(7.dp),
                 color = progressColor,
                 trackColor = progressColor.copy(alpha = 0.15f)
             )
@@ -494,13 +650,15 @@ fun EventCard(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isParticipant)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            Color(0xFF4F7AA3).copy(alpha = 0.7f)
                         else
-                            MaterialTheme.colorScheme.primary,
+                            Color(0xFF4F7AA3),
+                        contentColor = Color.White,
                         disabledContainerColor = if (isParticipant)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            Color(0xFF4F7AA3).copy(alpha = 0.15f)
                         else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                            Color(0xFF1C2B3A).copy(alpha = 0.12f),
+                        disabledContentColor = Color(0xFF1C2B3A).copy(alpha = 0.4f)
                     )
                 ) {
                     //L'icona i el text canvien depenent de l'estat
@@ -524,6 +682,8 @@ fun EventCard(
 
                 //Botó Abandonar, només visible si l'usuari és participant
                 if (isParticipant) {
+                    // Si l'usuari és l'organitzador, el botó mostra "Eliminar" en lloc d'"Abandonar"
+                    val isOrganizer = currentUsername == event.organizerName
                     OutlinedButton(
                         onClick = onLeave,
                         modifier = Modifier.weight(1f),
@@ -531,7 +691,10 @@ fun EventCard(
                             contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Text("Abandonar", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = if (isOrganizer) "Eliminar" else "Abandonar",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -544,6 +707,7 @@ fun EventCard(
  * Diàleg de confirmació d'inscripció a un esdeveniment.
  *
  * @param event Esdeveniment al qual es vol apuntar l'usuari.
+ * @param courtType Tipus de la pista, obtingut del mapa de pistes carregades.
  * @param onConfirm Funció que s'executa quan l'usuari confirma la inscripció.
  * @param onDismiss Funció que s'executa quan l'usuari cancel·la.
  *
@@ -552,103 +716,123 @@ fun EventCard(
 @Composable
 fun JoinConfirmDialog(
     event: Event,
+    courtType: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color(0xFFE8F0F8),
         icon = {
             Text(text = "🏅", style = MaterialTheme.typography.headlineMedium)
         },
         title = {
-            Text(text = "Confirmar inscripció", fontWeight = FontWeight.Bold)
+            Text(
+                text = "Confirmar inscripció",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C2B3A)
+            )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "T'estàs apuntant a:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.65f)
                 )
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1C2B3A)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.SportsTennis, contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        imageVector = courtTypeIcon(courtType),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color(0xFF4F7AA3)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = event.courtName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF4F7AA3)
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.CalendarMonth, contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        modifier = Modifier.size(18.dp),
+                        tint = Color(0xFF1C2B3A).copy(alpha = 0.45f)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = formatEventDateTime(event.dateTime),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF1C2B3A).copy(alpha = 0.65f)
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Group, contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        modifier = Modifier.size(18.dp),
+                        tint = Color(0xFF1C2B3A).copy(alpha = 0.45f)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Queden ${event.maxCapacity - event.currentParticipants} places lliures",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF1C2B3A).copy(alpha = 0.65f)
                     )
                 }
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm) {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4F7AA3),
+                    contentColor = Color.White
+                )
+            ) {
                 Text("Confirmar", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel·lar") }
+            TextButton(onClick = onDismiss) {
+                Text("Cancel·lar", color = Color(0xFF4F7AA3), fontWeight = FontWeight.Medium)
+            }
         }
     )
 }
 
-// LeaveConfirmDialog
 /**
  * Diàleg de confirmació d'abandonament o eliminació d'un esdeveniment.
  *
+ * @author Jesús Ramos
+ *
  * @param event Esdeveniment que es vol abandonar o eliminar.
+ * @param currentUsername Nom de l'usuari autenticat, per determinar si és l'organitzador.
  * @param onConfirm Funció que s'executa quan l'usuari confirma l'acció.
  * @param onDismiss Funció que s'executa quan l'usuari cancel·la.
- *
- * @author Jesús Ramos
  */
 @Composable
 fun LeaveConfirmDialog(
     event: Event,
+    currentUsername: String?,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     //Si l'usuari és l'únic participant, abandonar eliminarà l'event
     val isOnlyParticipant = event.currentParticipants == 1
+    // Si l'usuari és l'organitzador, l'acció sempre elimina l'event
+    val isOrganizer = currentUsername == event.organizerName
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color(0xFFE8F0F8),
         icon = {
             Text(
                 text = if (isOnlyParticipant) "⚠️" else "🚪",
@@ -659,33 +843,46 @@ fun LeaveConfirmDialog(
             Text(
                 text = if (isOnlyParticipant) "Eliminar esdeveniment"
                 else "Abandonar esdeveniment",
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C2B3A)
             )
         },
         text = {
             Text(
-                text = if (isOnlyParticipant)
-                    "Ets l'únic participant de \"${event.title}\". Si abandones, l'esdeveniment s'eliminarà definitivament. Vols continuar?"
-                else
-                    "Estàs a punt d'abandonar \"${event.title}\". Segur que vols continuar?",
-                style = MaterialTheme.typography.bodyMedium
+                text = when {
+                    isOnlyParticipant ->
+                        "Ets l'únic participant de \"${event.title}\". Si abandones, l'esdeveniment s'eliminarà definitivament. Vols continuar?"
+                    isOrganizer ->
+                        "Ets l'organitzador de \"${event.title}\". Si l'elimines, tots els participants perdran la inscripció. Vols continuar?"
+                    else ->
+                        "Estàs a punt d'abandonar \"${event.title}\". Segur que vols continuar?"
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color(0xFF1C2B3A).copy(alpha = 0.75f)
             )
         },
         confirmButton = {
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
                 )
             ) {
                 Text(
-                    text = if (isOnlyParticipant) "Eliminar" else "Abandonar",
+                    text = when {
+                        isOrganizer -> "Eliminar"
+                        isOnlyParticipant -> "Eliminar"
+                        else -> "Abandonar"
+                    },
                     fontWeight = FontWeight.Bold
                 )
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel·lar") }
+            TextButton(onClick = onDismiss) {
+                Text("Cancel·lar", color = Color(0xFF4F7AA3), fontWeight = FontWeight.Medium)
+            }
         }
     )
 }
@@ -718,11 +915,16 @@ fun CreateEventDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color(0xFFE8F0F8),
         icon = {
             Text(text = "🏟️", style = MaterialTheme.typography.headlineMedium)
         },
         title = {
-            Text(text = "Nou esdeveniment", fontWeight = FontWeight.Bold)
+            Text(
+                text = "Nou esdeveniment",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C2B3A)
+            )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -731,17 +933,23 @@ fun CreateEventDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it; errorMsg = null },
-                    label = { Text("Títol de l'esdeveniment") },
+                    label = { Text("Títol de l'esdeveniment", color = Color(0xFF4F7AA3)) },
                     placeholder = { Text("Ex: Torneig de Pàdel") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF4F7AA3),
+                        unfocusedBorderColor = Color(0xFF1C2B3A).copy(alpha = 0.3f),
+                        focusedTextColor = Color(0xFF1C2B3A),
+                        unfocusedTextColor = Color(0xFF1C2B3A)
+                    )
                 )
 
                 // Desplegable: Selecció de pista
                 if (courts.isEmpty()) {
                     Text(
                         text = "No s'han pogut carregar les pistes.",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
                 } else {
@@ -755,7 +963,7 @@ fun CreateEventDialog(
                             } ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Pista") },
+                            label = { Text("Pista", color = Color(0xFF4F7AA3)) },
                             placeholder = { Text("Selecciona una pista") },
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(
@@ -764,7 +972,13 @@ fun CreateEventDialog(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF4F7AA3),
+                                unfocusedBorderColor = Color(0xFF1C2B3A).copy(alpha = 0.3f),
+                                focusedTextColor = Color(0xFF1C2B3A),
+                                unfocusedTextColor = Color(0xFF1C2B3A)
+                            )
                         )
                         ExposedDropdownMenu(
                             expanded = dropdownExpanded,
@@ -777,13 +991,13 @@ fun CreateEventDialog(
                                             Text(
                                                 text = court.name,
                                                 fontWeight = FontWeight.Medium,
-                                                style = MaterialTheme.typography.bodyMedium
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = Color(0xFF1C2B3A)
                                             )
                                             Text(
                                                 text = "${court.type} · ${court.location} · Capacitat: ${court.capacity}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                                    .copy(alpha = 0.6f)
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color(0xFF1C2B3A).copy(alpha = 0.55f)
                                             )
                                         }
                                     },
@@ -826,7 +1040,10 @@ fun CreateEventDialog(
                             datePicker.minDate = System.currentTimeMillis()
                         }.show()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF4F7AA3)
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
@@ -838,7 +1055,8 @@ fun CreateEventDialog(
                         text = if (selectedDate.isNotEmpty() && selectedTime.isNotEmpty())
                             "$selectedDate a les $selectedTime"
                         else
-                            "Seleccionar data i hora"
+                            "Seleccionar data i hora",
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
@@ -847,7 +1065,7 @@ fun CreateEventDialog(
                     Text(
                         text = it,
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -872,13 +1090,19 @@ fun CreateEventDialog(
                             onConfirm(title.trim(), selectedCourt!!.id, dateTime)
                         }
                     }
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4F7AA3),
+                    contentColor = Color.White
+                )
             ) {
                 Text("Crear", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel·lar") }
+            TextButton(onClick = onDismiss) {
+                Text("Cancel·lar", color = Color(0xFF4F7AA3), fontWeight = FontWeight.Medium)
+            }
         }
     )
 }

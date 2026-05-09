@@ -44,6 +44,7 @@ interface WeatherApi {
      * @param longitude Longitud de la ubicació.
      * @param daily Variables meteorològiques diàries a obtenir.
      * @param timezone Zona horària per als resultats.
+     * @param forecastDays Nombre de dies de previsió a obtenir.
      * @return [WeatherResponse] amb la previsió sol·licitada.
      */
     @GET("v1/forecast")
@@ -51,7 +52,9 @@ interface WeatherApi {
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
         @Query("daily") daily: String = "temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,weathercode",
-        @Query("timezone") timezone: String = "Europe/Madrid"
+        @Query("timezone") timezone: String = "Europe/Madrid",
+        @Query("forecast_days") forecastDays: Int = 16
+
     ): WeatherResponse
 }
 

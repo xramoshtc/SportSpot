@@ -164,14 +164,16 @@ class DomainModelsTest {
         val booking = Booking(
             id = 100,
             dateTime = "2025-06-15T10:00",
-            durationMinutes = 60,
+            durationHours = 1,
+            endTime = "2025-06-15T11:00",
             userName = "jesusramos",
             courtName = "Pista Central",
             location = "Barcelona"
         )
         assertEquals(100, booking.id)
         assertEquals("2025-06-15T10:00", booking.dateTime)
-        assertEquals(60, booking.durationMinutes)
+        assertEquals(1, booking.durationHours)
+        assertEquals("2025-06-15T11:00", booking.endTime)
         assertEquals("jesusramos", booking.userName)
         assertEquals("Pista Central", booking.courtName)
         assertEquals("Barcelona", booking.location)
@@ -182,8 +184,8 @@ class DomainModelsTest {
      */
     @Test
     fun `Booking equals retorna true amb mateixos valors`() {
-        val b1 = Booking(1, "2025-06-15T10:00", 60, "jesus", "Pista A", "Barcelona")
-        val b2 = Booking(1, "2025-06-15T10:00", 60, "jesus", "Pista A", "Barcelona")
+        val b1 = Booking(1, "2025-06-15T10:00", 1, "2025-06-15T11:00", "jesus", "Pista A", "Barcelona")
+        val b2 = Booking(1, "2025-06-15T10:00", 1, "2025-06-15T11:00", "jesus", "Pista A", "Barcelona")
         assertEquals(b1, b2)
     }
 
@@ -192,8 +194,8 @@ class DomainModelsTest {
      */
     @Test
     fun `Booking equals detecta diferencia en durada`() {
-        val b1 = Booking(1, "2025-06-15T10:00", 60, "jesus", "Pista A", "Barcelona")
-        val b2 = Booking(1, "2025-06-15T10:00", 90, "jesus", "Pista A", "Barcelona")
+        val b1 = Booking(1, "2025-06-15T10:00", 1, "2025-06-15T11:00", "jesus", "Pista A", "Barcelona")
+        val b2 = Booking(1, "2025-06-15T10:00", 2, "2025-06-15T12:00", "jesus", "Pista A", "Barcelona")
         assertNotEquals(b1, b2)
     }
 

@@ -38,14 +38,14 @@ import androidx.compose.ui.graphics.Color
  * ràpid a les funcionalitats principals: reservar pista, les meves reserves,
  * esdeveniments i el meu perfil.
  *
+ * @author Jesús Ramos
+ *
  * @param onLogout Funció que s'executa quan el logout ha finalitzat.
  * @param onNavigateToProfile Funció per navegar al perfil.
  * @param onNavigateToCourts Funció per navegar al llistat de pistes.
  * @param onNavigateToMyBookings Funció per navegar a les reserves.
  * @param onNavigateToEvents Funció per navegar als esdeveniments.
  * @param viewModel ViewModel que proveeix l'estat i les accions del client.
- *
- * @author Jesús Ramos
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("ContextCastToActivity")
@@ -87,7 +87,7 @@ fun ClientScreen(
         ) {
             Column {
                 Text(
-                    text = "Hola! 👋 $username",
+                    text = "Hola!👋, $username",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -221,23 +221,25 @@ fun ClientScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        //Token de sessió
+//Token de sessió
         Text(
-            text = "Token",
+            text = "Token de sessió (per proves)",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(1.dp))
         Text(
             text = token ?: "Sense token",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
 
-        Spacer(modifier = Modifier.weight(1f))
 
+
+
+        Spacer(modifier = Modifier.weight(1f))
         //Botó Tancar sessió
         Button(
             onClick = {
@@ -254,13 +256,8 @@ fun ClientScreen(
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
             )
         ) {
-            Icon(
-                imageVector = Icons.Default.ExitToApp,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Tancar sessió", fontWeight = FontWeight.Bold)
+            Text("Tancar la sessió", fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -281,18 +278,15 @@ fun ClientScreen(
     }
 }
 
-
-// DashboardCard — component reutilitzable per als botons de la graella
 /**
  * Targeta quadrada reutilitzable per als botons del dashboard del client.
  *
+ * @author Jesús Ramos
  *
  * @param onClick Acció en prémer la targeta.
  * @param modifier Modifier addicional (normalment weight).
  * @param containerColor Color de fons de la targeta.
  * @param content Contingut interior (icona + text).
- *
- * @author Jesús Ramos
  */
 @Composable
 fun DashboardCard(
@@ -317,15 +311,14 @@ fun DashboardCard(
     }
 }
 
-// NextBookingCard - Targeta de propera reserva
 /**
  * Targeta que mostra la propera reserva de l'usuari amb previsió del temps.
  * Si no hi ha cap reserva futura, mostra un missatge informatiu.
  *
+ * @author Jesús Ramos
+ *
  * @param booking Propera reserva de l'usuari, o null si no n'hi ha.
  * @param weather Previsió meteorològica de la reserva, o null si no disponible.
- *
- * @author Jesús Ramos
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -338,15 +331,15 @@ fun NextBookingCard(
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color(0xFFE8F0F8)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Propera reserva",
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = Color(0xFF1C2B3A)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -354,25 +347,25 @@ fun NextBookingCard(
             if (booking == null) {
                 Text(
                     text = "No tens cap pista reservada",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.45f)
                 )
             } else {
                 Text(
                     text = booking.courtName,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF1C2B3A)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = booking.location,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color(0xFF4F7AA3)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                    color = Color(0xFF1C2B3A).copy(alpha = 0.1f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -382,32 +375,39 @@ fun NextBookingCard(
                 ) {
                     Text(
                         text = formatDateTime(booking.dateTime),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color(0xFF1A3A5A)
                     )
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            containerColor = Color(0xFF2E86DE).copy(alpha = 0.15f)
                         ),
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            text = "${booking.durationMinutes} min",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
+                            text = "${booking.durationHours}h",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1A3A5A),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
                 weather?.let {
                     Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                    )
+                    HorizontalDivider(color = Color(0xFF1C2B3A).copy(alpha = 0.1f))
                     Spacer(modifier = Modifier.height(10.dp))
                     WeatherCompact(weather = it)
+                } ?: run {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = Color(0xFF1C2B3A).copy(alpha = 0.1f))
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "⏳ Previsió del temps encara no disponible",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF1C2B3A)
+                    )
                 }
             }
         }

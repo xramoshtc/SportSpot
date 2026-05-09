@@ -69,12 +69,13 @@ class AdminCourtsViewModel(
      * @param type Tipus d'esport.
      * @param price Preu per hora en euros.
      * @param location Localització de la pista.
+     * @param capacity Aforament màxim de la pista.
      */
-    fun createCourt(name: String, type: String, price: Double, location: String) {
+    fun createCourt(name: String, type: String, price: Double, location: String, capacity: Int) {
         viewModelScope.launch {
             try {
                 val token = dataStore.tokenFlow.first() ?: throw Exception("Sense token")
-                repository.createCourt(token, name, type, price, location)
+                repository.createCourt(token, name, type, price, location, capacity)
                 loadCourts()
             } catch (e: Exception) {
                 _uiState.value = AdminCourtsUiState.Error(e.message ?: "Error en crear la pista")
@@ -92,12 +93,13 @@ class AdminCourtsViewModel(
      * @param type Nou tipus d'esport.
      * @param price Nou preu per hora en euros.
      * @param location Nova localització de la pista.
+     * @param capacity Nou aforament màxim de la pista.
      */
-    fun updateCourt(id: Long, name: String, type: String, price: Double, location: String) {
+    fun updateCourt(id: Long, name: String, type: String, price: Double, location: String, capacity: Int) {
         viewModelScope.launch {
             try {
                 val token = dataStore.tokenFlow.first() ?: throw Exception("Sense token")
-                repository.updateCourt(token, id, name, type, price, location)
+                repository.updateCourt(token, id, name, type, price, location, capacity)
                 loadCourts()
             } catch (e: Exception) {
                 _uiState.value = AdminCourtsUiState.Error(e.message ?: "Error en modificar la pista")
