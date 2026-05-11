@@ -11,6 +11,10 @@ using System.Windows.Forms;
 
 namespace SportSpot.Controls
 {
+    /// <summary>
+    /// Autor: Miquel Uribe Faixedas
+    /// Classe que mostra les reserves del usuari i permet cancel·lar-les si encara no han passat. Utilitza el servei BookingService per obtenir les reserves i gestionar la cancel·lació.
+    /// </summary>
     public partial class UCReserves : UserControl
     {
         public UCReserves()
@@ -23,7 +27,10 @@ namespace SportSpot.Controls
             LoadReserves();
         }
 
-
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que carrega les reserves de l'usuari mitjançant el BookingService i les mostra en un DataGridView. Configura les columnes i afegeix un botó per cancel·lar cada reserva.
+        /// </summary>
         private async void LoadReserves()
         {
             var service = new BookingService();
@@ -43,6 +50,12 @@ namespace SportSpot.Controls
             AfegirColumnaCancelar();
         }
 
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que gestiona el clic en el botó de cancel·lar reserva. Comprova si s'ha clicat la columna correcta, obté l'ID de la reserva i crida al BookingService per cancel·lar-la. Si la cancel·lació és correcta, refresca el llistat de reserves.
+        /// </summary>
+        /// <param name="sender">Objecte que envia l'esdeveniment.</param>
+        /// <param name="e">Arguments de l'esdeveniment.</param>
         private async void dataGridViewReserves_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0)
@@ -76,6 +89,10 @@ namespace SportSpot.Controls
             }
         }
 
+        /// <summary>
+        /// Autor: Miquel Uribe Faixedas
+        /// Mètode que afegeix una columna de botó al DataGridView per permetre la cancel·lació de les reserves. Comprova si la columna ja existeix abans d'afegir-la per evitar duplicats.
+        /// </summary>
         private void AfegirColumnaCancelar()
         {
             if (dataGridViewReserves.Columns.Contains("Cancelar"))
