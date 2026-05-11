@@ -140,5 +140,13 @@ namespace SportSpot
             pnlContent.Controls.Clear();
             pnlContent.Controls.Add(new UCHomeClient() { Dock = DockStyle.Fill });
         }
+
+        private void btnEvents_Click(object sender, EventArgs e)
+        {
+            var uc = new UCEventsClient();
+            uc.Dock = DockStyle.Fill;
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
+        }
     }
 }

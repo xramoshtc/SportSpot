@@ -1,6 +1,6 @@
 ﻿namespace SportSpot.Controls
 {
-    partial class UCReserves
+    partial class UCReservesAdmin
     {
         /// <summary> 
         /// Variable del diseñador necesaria.
@@ -33,8 +33,10 @@
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             lblTittleUsuaris = new Label();
-            dataGridViewReserves = new DataGridView();
-            ((System.ComponentModel.ISupportInitialize)dataGridViewReserves).BeginInit();
+            dataGridViewReservesAdmin = new DataGridView();
+            comboBoxPistes = new ComboBox();
+            lblPista = new Label();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReservesAdmin).BeginInit();
             SuspendLayout();
             // 
             // lblTittleUsuaris
@@ -48,14 +50,14 @@
             lblTittleUsuaris.TabIndex = 11;
             lblTittleUsuaris.Text = "Reserves";
             // 
-            // dataGridViewReserves
+            // dataGridViewReservesAdmin
             // 
             dataGridViewCellStyle1.BackColor = SystemColors.ButtonFace;
             dataGridViewCellStyle1.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewReserves.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            dataGridViewReserves.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
-            dataGridViewReserves.BorderStyle = BorderStyle.None;
-            dataGridViewReserves.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dataGridViewReservesAdmin.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewReservesAdmin.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridViewReservesAdmin.BorderStyle = BorderStyle.None;
+            dataGridViewReservesAdmin.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = Color.DodgerBlue;
             dataGridViewCellStyle2.Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -63,8 +65,8 @@
             dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.True;
-            dataGridViewReserves.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
-            dataGridViewReserves.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewReservesAdmin.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewReservesAdmin.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = SystemColors.Window;
             dataGridViewCellStyle3.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -73,11 +75,11 @@
             dataGridViewCellStyle3.SelectionBackColor = Color.FromArgb(51, 153, 255);
             dataGridViewCellStyle3.SelectionForeColor = Color.White;
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
-            dataGridViewReserves.DefaultCellStyle = dataGridViewCellStyle3;
-            dataGridViewReserves.Dock = DockStyle.Bottom;
-            dataGridViewReserves.EnableHeadersVisualStyles = false;
-            dataGridViewReserves.Location = new Point(0, 186);
-            dataGridViewReserves.Name = "dataGridViewReserves";
+            dataGridViewReservesAdmin.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewReservesAdmin.Dock = DockStyle.Bottom;
+            dataGridViewReservesAdmin.EnableHeadersVisualStyles = false;
+            dataGridViewReservesAdmin.Location = new Point(0, 186);
+            dataGridViewReservesAdmin.Name = "dataGridViewReservesAdmin";
             dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle4.BackColor = Color.DodgerBlue;
             dataGridViewCellStyle4.Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -85,24 +87,44 @@
             dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
-            dataGridViewReserves.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
-            dataGridViewReserves.RowHeadersVisible = false;
-            dataGridViewReserves.RowHeadersWidth = 62;
-            dataGridViewReserves.Size = new Size(1182, 434);
-            dataGridViewReserves.TabIndex = 14;
-            dataGridViewReserves.CellContentClick += dataGridViewReserves_CellContentClick;
+            dataGridViewReservesAdmin.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewReservesAdmin.RowHeadersVisible = false;
+            dataGridViewReservesAdmin.RowHeadersWidth = 62;
+            dataGridViewReservesAdmin.Size = new Size(1182, 434);
+            dataGridViewReservesAdmin.TabIndex = 14;
+            dataGridViewReservesAdmin.CellContentClick += dataGridViewReserves_CellContentClick;
             // 
-            // UCReserves
+            // comboBoxPistes
+            // 
+            comboBoxPistes.FormattingEnabled = true;
+            comboBoxPistes.Location = new Point(224, 92);
+            comboBoxPistes.Name = "comboBoxPistes";
+            comboBoxPistes.Size = new Size(182, 33);
+            comboBoxPistes.TabIndex = 15;
+            comboBoxPistes.SelectedIndexChanged += comboBoxPistes_SelectedIndexChanged;
+            // 
+            // lblPista
+            // 
+            lblPista.AutoSize = true;
+            lblPista.Location = new Point(149, 95);
+            lblPista.Name = "lblPista";
+            lblPista.Size = new Size(53, 25);
+            lblPista.TabIndex = 16;
+            lblPista.Text = "Pista:";
+            // 
+            // UCReservesAdmin
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(247, 249, 251);
-            Controls.Add(dataGridViewReserves);
+            Controls.Add(lblPista);
+            Controls.Add(comboBoxPistes);
+            Controls.Add(dataGridViewReservesAdmin);
             Controls.Add(lblTittleUsuaris);
-            Name = "UCReserves";
+            Name = "UCReservesAdmin";
             Size = new Size(1182, 620);
-            Load += UCReserves_Load;
-            ((System.ComponentModel.ISupportInitialize)dataGridViewReserves).EndInit();
+            Load += UCReservesAdmin_Load;
+            ((System.ComponentModel.ISupportInitialize)dataGridViewReservesAdmin).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -110,6 +132,8 @@
         #endregion
 
         private Label lblTittleUsuaris;
-        private DataGridView dataGridViewReserves;
+        private DataGridView dataGridViewReservesAdmin;
+        private ComboBox comboBoxPistes;
+        private Label lblPista;
     }
 }

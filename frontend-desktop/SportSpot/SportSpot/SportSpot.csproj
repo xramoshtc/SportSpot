@@ -11,7 +11,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\UCEventsClient.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCEvents.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UCReservesAdmin.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="EditEventForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="EditPistaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="NewEventForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="NewPista.cs">

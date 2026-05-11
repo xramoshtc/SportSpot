@@ -158,7 +158,7 @@ namespace SportSpot
         /// <param name="e">Les dades de l'esdeveniment</param>
         private void btnBook_Click(object sender, EventArgs e)
         {
-            var uc = new UCReserves();
+            var uc = new UCReservesAdmin();
             uc.Dock = DockStyle.Fill;
             pnlContent.Controls.Clear();
             pnlContent.Controls.Add(uc);
@@ -178,6 +178,14 @@ namespace SportSpot
         {
             pnlContent.Controls.Clear();
             pnlContent.Controls.Add(new UCHomeAdmin() { Dock = DockStyle.Fill });
+        }
+
+        private void btnEvents_Click(object sender, EventArgs e)
+        {
+            var uc = new UCEvents();
+            uc.Dock = DockStyle.Fill;
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
         }
     }
 }

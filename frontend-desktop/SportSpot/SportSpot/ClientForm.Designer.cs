@@ -40,6 +40,7 @@
             btnLogout = new Button();
             btnNewBook = new Button();
             btnPrivate2 = new Button();
+            btnEvents = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
@@ -78,6 +79,7 @@
             // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel1.BackColor = Color.FromArgb(51, 102, 204);
+            panel1.Controls.Add(btnEvents);
             panel1.Controls.Add(btnBook);
             panel1.Controls.Add(btnPrivate);
             panel1.Controls.Add(btnHome);
@@ -167,7 +169,7 @@
             btnLogout.ForeColor = Color.White;
             btnLogout.Image = (Image)resources.GetObject("btnLogout.Image");
             btnLogout.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLogout.Location = new Point(0, 362);
+            btnLogout.Location = new Point(0, 841);
             btnLogout.Name = "btnLogout";
             btnLogout.Padding = new Padding(10, 0, 0, 0);
             btnLogout.Size = new Size(357, 67);
@@ -208,6 +210,26 @@
             btnPrivate2.Text = "Àrea Privada";
             btnPrivate2.UseVisualStyleBackColor = false;
             // 
+            // btnEvents
+            // 
+            btnEvents.BackColor = Color.FromArgb(51, 102, 204);
+            btnEvents.FlatAppearance.BorderSize = 0;
+            btnEvents.FlatStyle = FlatStyle.Flat;
+            btnEvents.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            btnEvents.ForeColor = Color.White;
+            btnEvents.Image = (Image)resources.GetObject("btnEvents.Image");
+            btnEvents.ImageAlign = ContentAlignment.MiddleLeft;
+            btnEvents.Location = new Point(0, 362);
+            btnEvents.Name = "btnEvents";
+            btnEvents.Padding = new Padding(10, 0, 0, 0);
+            btnEvents.Size = new Size(357, 67);
+            btnEvents.TabIndex = 7;
+            btnEvents.Text = "Esdeveniments";
+            btnEvents.TextAlign = ContentAlignment.MiddleLeft;
+            btnEvents.TextImageRelation = TextImageRelation.ImageBeforeText;
+            btnEvents.UseVisualStyleBackColor = false;
+            btnEvents.Click += btnEvents_Click;
+            // 
             // ClientForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -244,5 +266,6 @@
         private Button btnLogout;
         private Button btnNewBook;
         private Button btnPrivate2;
+        private Button btnEvents;
     }
 }
