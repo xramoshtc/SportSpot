@@ -60,7 +60,7 @@ public class SportSpotE2ETest {
 
     @BeforeEach
     void setUp() {
-        baseUrl = "http://localhost:" + port + "/api";
+        baseUrl = "https://localhost:" + port + "/api";
         
         // Netegem tota la base de dades
         bookingRepository.deleteAll();

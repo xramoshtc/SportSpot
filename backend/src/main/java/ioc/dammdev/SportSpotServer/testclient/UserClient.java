@@ -17,7 +17,7 @@ public class UserClient {
     private final RestTemplate restTemplate;
 
     public UserClient(String port) {
-        this.baseUrl = "http://localhost:" + port + "/api/users";
+        this.baseUrl = "https://localhost:" + port + "/api/users";
         this.restTemplate = new RestTemplate();
     }
 

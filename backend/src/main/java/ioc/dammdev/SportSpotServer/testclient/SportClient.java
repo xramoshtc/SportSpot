@@ -24,8 +24,10 @@ public class SportClient {
      
 
 
- //String baseUrl = "https://localhost:";
- String baseUrl = "https://10.2.3.145:";
+
+ String baseUrl = "https://localhost:";
+ //String baseUrl = "https://10.2.3.145:";
+
 
 
 

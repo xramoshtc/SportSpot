@@ -56,27 +56,33 @@ public class BookingService {
 
         // 4. Validacions de Negoci (Horaris i Solapaments)
         // Llançaran excepció amb el missatge exacte per al client
-        validateBookingBusinessRules(booking);
+        validateBookingBusinessRules(booking, null);
 
         return bookingRepository.save(booking);
     }
 
     /**
-     * Agrupa les validacions de negoci per netejar el mètode principal.
+     * Agrupa les validacions de negoci. 
+     * @param excludeId Pot ser null si és una reserva nova (create).
      */
-    private void validateBookingBusinessRules(Booking booking) {
-        // Rang horari
+    private void validateBookingBusinessRules(Booking booking, Long excludeId) {
+        // 1. Rang horari (mantenim la teva lògica)
         int startHour = booking.getDateTime().getHour();
         if (startHour < 8 || startHour >= 24) {
             throw new RuntimeException("L'horari de reserves és de 08:00 a 00:00.");
         }
 
-        // Solapament
-        List<Booking> overlaps = bookingRepository.findOverlappingBookings(
-                booking.getCourt(), 
-                booking.getDateTime(), 
-                booking.getEndTime()
-        );
+        // 2. Solapament intel·ligent
+        List<Booking> overlaps;
+        if (excludeId == null) {
+            // Cas per a createBooking
+            overlaps = bookingRepository.findOverlappingBookings(
+                    booking.getCourt(), booking.getDateTime(), booking.getEndTime());
+        } else {
+            // Cas per a updateBooking: ignorem la reserva actual
+            overlaps = bookingRepository.findOverlappingBookingsExcludingId(
+                    booking.getCourt(), booking.getDateTime(), booking.getEndTime(), excludeId);
+        }
 
         if (!overlaps.isEmpty()) {
             throw new RuntimeException("La pista ja està ocupada en aquest horari.");
@@ -120,7 +126,7 @@ public class BookingService {
                 booking.autoCalculateEndTime();
                 
                 // Validem la nova franja
-                validateBookingBusinessRules(booking);
+                validateBookingBusinessRules(booking,booking.getId());
                 
                 return bookingRepository.save(booking);
             }
